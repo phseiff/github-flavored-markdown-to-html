@@ -59,6 +59,7 @@ class FindFormulasInHtml(HTMLParser, ABC):
                         url="https://latex.codecogs.com/svg.latex?" + quote(line_center)
                     ).text
                     svg_image_code = svg_image_code.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[1]
+                    svg_image_code = svg_image_code.replace('<svg', '<svg style="vertical-align: middle"')
                     line_center = svg_image_code.replace('<path', '<path class="formula"')
                     new_line_center_length = len(line_center)
                     line_growth += new_line_center_length - old_line_center_length
@@ -67,7 +68,7 @@ class FindFormulasInHtml(HTMLParser, ABC):
                 for result in self.results:
                     if result[0][0][0] == line_number:
                         result[0][0] = (result[0][0][0], result[0][0][1] + line_growth)
-                        result[0][1] = (result[0][1][0], result[0][1][1] + line_growth)
+                        # result[0][1] = (result[0][1][0], result[0][1][1] + line_growth)
                 html_rendered_in_lines[line_number] = line_left + line_center + line_right
                 # print("new line:", html_rendered_in_lines[line_number])
         return "\n".join(html_rendered_in_lines)
@@ -97,6 +98,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
          output_name="<name>.html", output_pdf=None, style_pdf=True, footer=None, math=True,
          formulas_supporting_darkreader=False):
     # set all to defaults:
+    style_pdf = str2bool(style_pdf)
+    math = str2bool(math)
     if website_root is None:
         website_root = ""
     if destination is None:
@@ -342,6 +345,18 @@ Use this function like the command line interface:
 --------------------------------------------------
 """ + HELP
 
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 if __name__ == "__main__":
     # argparse:
     parser = argparse.ArgumentParser(
@@ -395,7 +410,7 @@ if __name__ == "__main__":
     library which will also need to be installed for this to work. You may use the <name> variable in this value like
     you did in --output-name.""")
 
-    parser.add_argument('-s', '--style-pdf', default=True, type=bool, help="""
+    parser.add_argument('-s', '--style-pdf', default="true", help="""
     If set to false, the generated pdf (only relevant if you use --output-pdf) will not be styled using github's css.
     """)
 
@@ -404,7 +419,7 @@ if __name__ == "__main__":
     Defaults to None, meaning that the section usually containing said footer will be omitted altogether.
     """)
 
-    parser.add_argument('-m', '--math', default=True, type=bool, help="""
+    parser.add_argument('-m', '--math', default="true", help="""
     If set to True, which is the default, LaTeX-formulas using $formula$-notation will be rendered.""")
 
     parser.add_argument('-r', '--formulas-supporting-darkreader', default="false", type=bool, help="""
