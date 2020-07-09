@@ -1,0 +1,216 @@
+
+<link rel="stylesheet" href="/github-flavored-markdown-to-html/docs/css/github-css.css">
+
+
+<div id="gist103792311" class="gist">
+    <div class="gist-file"> <!-- This is the class that is responsible for the boxing! -->
+        <div class="gist-data">
+            <div class="js-gist-file-update-container js-task-list-container file-box">
+                <div id="file-docker-image-pull-md" class="file">
+                    <div id="file-docker-image-pull-md-readme" class="Box-body readme blob js-code-block-container p-5 p-xl-6"
+                         style="margin-left: 40px; margin-right: 40px; margin-top: 20px; margin-bottom: 20px">
+                        <article class="markdown-body entry-content container-lg" itemprop="text">
+                            <h1>
+<a id="user-content-github-flavored-markdown-to-html" class="anchor" href="#github-flavored-markdown-to-html" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>github-flavored-markdown-to-html</h1>
+<p>Convert Markdown to html via python or with a command line interface. Uses <a href="https://developer.github.com/v3/markdown/">Githubs online
+Markdown-to-html-API</a> as well as
+<a href="https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css" rel="nofollow">Githubs Markdown-CSS</a>.
+Requires internet connection to work.</p>
+<p>This module is intended to be used for the creation of
+static pages from markdown files, for example in conjunction with a static website builder
+or github actions if you host on Github, but can be very well used for any other purpose.
+It also allows you to convert the html files to pdf on the fly.</p>
+<p>Advantages include:</p>
+<ul>
+<li>Lets you specify the markdown to convert as a string, as a repository path, as a local
+file name or as a hyperlink.</li>
+<li>Pulls any images referenced in the markdown files from the web/ your local storage and
+places them in a directory relative to your website root, so you can host it all locally
+without relying on third-party-websites.</li>
+<li>Creates all links as root-relative hyperlinks and lets you specify the root directory
+as well as the locations for css and images, but uses smart standard values for
+everything.</li>
+<li>Supports inline LaTeX-formulas (use <code>$</code>-formula-<code>$</code> to use them), which GitHub usually
+doesn't (this is done using the <a href="https://latex.codecogs.com/" rel="nofollow">Codecogs EqnEditor</a>).</li>
+<li>Supports exporting as pdf with or without Github styling, using the
+<a href="https://pypi.org/project/pdfkit/" rel="nofollow">pdfkit</a> python module (if it is installed).</li>
+<li>Tested and optimized to look good when using
+<a href="https://github.com/darkreader/darkreader">Darkreader</a> (the
+.js-module, not nessesarily the browser extension. This means that formulas are displayed
+with a light text when in darkmode, amongst other things).</li>
+</ul>
+<h2>
+<a id="user-content-installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+<p>Use
+<code>pip3 install gh_md_to_html</code> (might require <code>sudo</code> on Linux) and optionally
+<code>pip3 install pdfkit</code> (if you want to use the optional pdf features) to install it.</p>
+<h2>
+<a id="user-content-usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+<p>If you want to access the interface with your command line, you can just supply
+<code>gh_markdown_to_html</code> with the arguments documented in th help text (accessible with
+<code>gh_markdown_to_html -h</code> and shown below.)</p>
+<p>If you want to access the interface via python, you can use</p>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> <span class="pl-s1">gh_md_to_html</span></pre></div>
+<p>and then use <code>gh_md_to_html.main()</code> with the same arguments (and default values) you would
+supply to the command line interface.</p>
+<h3>
+<a id="user-content-documentation" class="anchor" href="#documentation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Documentation</h3>
+<p>All arguments and how they work are documented in the help text of the program, which looks
+like this:</p>
+<pre><code>usage: __init__.py [-h] [-t {file,repo,web,string}] [-w WEBSITE_ROOT]
+                   [-d DESTINATION] [-i IMAGE_PATHS] [-c CSS_PATHS]
+                   [-n OUTPUT_NAME] [-p OUTPUT_PDF] [-s STYLE_PDF] [-f FOOTER]
+                   [-m MATH]
+                   MD-origin
+
+Convert markdown to HTML using the GitHub API and some additional tweaks with
+python.
+
+positional arguments:
+  MD-origin             Where to find the markdown file that should be
+                        converted to html
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t {file,repo,web,string}, --origin-type {file,repo,web,string}
+                        In what way the MD-origin-argument describes the origin
+                        of the markdown file to use. Defaults to file. The
+                        options mean: 
+                        * file: takes a relative or absolute path to a file
+                        * repo: takes a path to a markdown-file in a repository,
+                        such as &lt;user_name&gt;/&lt;repo_name&gt;/&lt;path_to_markdown&gt;.md
+                        * web: takes an url to a markdown file
+                        * string: takes a string containing the files content
+  -w WEBSITE_ROOT, --website-root WEBSITE_ROOT
+                        Only relevant if you are creating the html for a static
+                        website which you manage using git or something similar.
+                        --html-root is the directory from which you serve your
+                        website (which is needed to correctly generate the links
+                        within the generated html, such as the link pointing to
+                        the css, since they are all root- relative), and can be
+                        a relative as well as an absolute path. Defaults to the
+                        directory you called this script from. If you intent to
+                        view the html file on your laptop instead of hosting it
+                        on a static site, website-root should be a dot and
+                        destination not set. The reason the generated html files
+                        use root-relative links to embed images is that on many
+                        static websites, https://foo/bar/index.html can be
+                        accessed via https://foo/bar, in which case relative
+                        (non-root- relative) links in index.html will be
+                        interpreted as relative to foo instead of bar, which can
+                        cause images not to load.
+  -d DESTINATION, --destination DESTINATION
+                        Where to store the generated html. This path is relative
+                        to --website-root. Defaults to "".
+  -i IMAGE_PATHS, --image-paths IMAGE_PATHS
+                        Where to store the images needed or generated for the
+                        html. This path is relative to website-root. Defaults to
+                        the "images"-folder within the destination folder.
+  -c CSS_PATHS, --css-paths CSS_PATHS
+                        Where to store the css needed for the html (as a path
+                        relative to the website root). Defaults to the
+                        "&lt;WEBSITE_ROOT&gt;/github-markdown-css"-folder.
+  -n OUTPUT_NAME, --output-name OUTPUT_NAME
+                        What the generated html file should be called like. Use
+                        &lt;name&gt; within the value to refer to the name of the
+                        markdown file that is being converted (if you don't use
+                        "-t string").
+  -p OUTPUT_PDF, --output-pdf OUTPUT_PDF
+                        If set, the file will also be saved as a pdf file in the
+                        same directory as the html file, using pdfkit, a python
+                        library which will also need to be installed for this to
+                        work. You may use the &lt;name&gt; variable in this value like
+                        you did in --output-name.
+  -s STYLE_PDF, --style-pdf STYLE_PDF
+                        If set to false, the generated pdf (only relevant if you
+                        use --output-pdf) will not be styled using github's css.
+  -f FOOTER, --footer FOOTER
+                        An optional piece of html which will be included as a
+                        footer where the 'hosted with &lt;3 by github'-footer
+                        usually is. Defaults to None, meaning that the section
+                        usually containing said footer will be omitted
+                        altogether.
+  -m MATH, --math MATH  If set to True, which is the default, LaTeX-formulas
+                        using $formula$-notation will be rendered.
+</code></pre>
+<p>As mentioned above, any image referenced in the markdown file is stored locally and
+referenced using a root-relative hyperlinks in the generated html. How the converter
+guesses the location of the image is shown in the following table, with the type of imagelink noted on the top and the type of input markdown noted on the left:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>
+<code>https://</code>�or <code>http://</code>
+</th>
+<th align="center">abs. filepath</th>
+<th>rel. filepath</th>
+<th>starting with�<code>/</code>�(e.g. <code>/image.png</code>)</th>
+<th>not starting with <code>/</code>�(e.g. <code>image.png</code>)</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-t file</code></td>
+<td>from the address</td>
+<td align="center">abs. filepath</td>
+<td>rel. filepath (from where the <code>.md</code>-file lies)</td>
+<td>-</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td><code>username/repo/dir/file.md -t repo</code></td>
+<td>from the address</td>
+<td align="center">-</td>
+<td>-</td>
+<td><code>username/repo/imagedir/image.png</code></td>
+<td><code>username/repo/dir/imagedir/image.png</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>-t string</code></td>
+<td>from the address</td>
+<td align="center">abs.filepath, but needs confirmation for securty reasons</td>
+<td>rel. filepath (to where the tool is called from), but needs confirmation for security reasons</td>
+<td>-</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td><code>https://foo.com/bar/baz.md -t web</code></td>
+<td>from the address</td>
+<td align="center">-</td>
+<td>-</td>
+<td><code>https://foo.com/image.png</code></td>
+<td><code>https://foo.com/bar/image.png</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-demonstration" class="anchor" href="#demonstration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Demonstration</h2>
+<p>You can find this README-file hosted as a html <a href="https://phseiff.com/README.html" rel="nofollow">here</a>, or as a html with darkmode support <a href="https://phseiff.com/README-darkreader.html" rel="nofollow">here</a> (appears dark when your system preferences say you prefer it this way), or as a pdf with styling <a href="https://..." rel="nofollow">here</a> or without styling <a href="https://" rel="nofollow">here</a> (the html files where created from the root directory of this projects directory, which relates to the root directory of the site I am hosting them on).</p>
+<hr>
+<p><strong>DISCLAIMER</strong>: This module is neither written by Github, nor is it endorsed with Github,
+supported by Github, powered by Github or affiliated with Github. It only uses a public
+API provided by Github as well as a .css-file licensed by Github under the MIT license.</p>
+
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- div class="gist-meta">
+            <a href="https://gist.github.com/jatin-lab49/18feba3f1610d57123b729494b7f0ef9/raw/ac9748d3b245b71a428340b2418db77ecc74f57e/docker-image-pull.md" style="float:right">
+                view raw
+            </a>
+            <a href="https://gist.github.com/jatin-lab49/18feba3f1610d57123b729494b7f0ef9#file-docker-image-pull-md">
+                name-of-md.md
+            </a>
+            hosted with &#10084; by <a href="https://github.com">GitHub</a>
+         </div -->
+     </div>
+ </div>

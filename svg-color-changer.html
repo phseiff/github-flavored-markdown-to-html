@@ -1,0 +1,31 @@
+<style class="formula-style">
+    .formula {
+        fill: black;
+    }
+</style>
+<script>
+    function isScriptLoaded(src)
+    {
+        console.log(document.querySelector('script[src$="' + src.slice(1, src.length) + '"]'));
+        if (src[0] === "*")
+        {
+            return (
+                document.querySelector('script[src="' + src.slice(1, src.length) + '"]')
+                || document.querySelector('script[src$="/' + src.slice(1, src.length) + '"]')
+            );
+        }
+        else
+        {
+            return document.querySelector('script[src="' + src + '"]');
+        }
+    }
+    console.log("---");
+    if (isScriptLoaded("{script_name}") && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        var elements = document.getElementsByClassName("formula-style");
+        console.log("OiOiOI");
+        for (var i = 0; i < elements.length; i++) {
+            console.log("waaaa");
+            elements[i].innerHTML = ".formula { fill: #c8c3bc; }"
+        }
+    }
+</script>
