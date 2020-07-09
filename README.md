@@ -148,6 +148,12 @@ guesses the location of the image is shown in the following table, with the type
 
 You can find this README-file hosted as a html [here](https://phseiff.com/github-flavored-markdown-to-html/README.html), or as a html with darkmode support [here](https://phseiff.com/github-flavored-markdown-to-html/README-darkreader.html) (appears dark when your system preferences say you prefer it this way), or as a pdf with styling [here](https://phseiff.com/github-flavored-markdown-to-html/README.pdf) or without styling [here]([https://phseiff.com/github-flavored-markdown-to-html/README.pdf](https://phseiff.com/github-flavored-markdown-to-html/README-unstyled.pdf)) (the html files where created from the root directory of this projects directory, which relates to the root directory of the site I am hosting them on, using `python3 github-flavored-markdown-to-html/__init__.py github-flavored-markdown-to-html/README.md -d github-flavored-markdown-to-html/docs -c github-flavored-markdown-to-html/docs/css`).
 
+I also added a $formula$ here ($\sum_{i\ge e^2}^{7.3}\frac{4}{5}$) to demonstrate the formula rendering (which you won't see when viewing this README directly on github since, like I said, github usually doesn't support it.)
+
+## Some Notes
+
+In case you are not happy with the margin left and right of the text, you canmanually adjust it  by modifying the margin-values hardcoded in prototype.html in this repsitory.
+
 ----
 
 **DISCLAIMER**: This module is neither written by Github, nor is it endorsed with Github,
