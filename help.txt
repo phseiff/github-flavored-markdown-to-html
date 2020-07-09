@@ -1,0 +1,88 @@
+usage: __init__.py [-h] [-t {file,repo,web,string}] [-w WEBSITE_ROOT]
+                   [-d DESTINATION] [-i IMAGE_PATHS] [-c CSS_PATHS]
+                   [-n OUTPUT_NAME] [-p OUTPUT_PDF] [-s STYLE_PDF] [-f FOOTER]
+                   [-m MATH] [-r FORMULAS_SUPPORTING_DARKREADER]
+                   MD-origin
+
+Convert markdown to HTML using the GitHub API and some additional tweaks with
+python.
+
+positional arguments:
+  MD-origin             Where to find the markdown file that should be
+                        converted to html
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t {file,repo,web,string}, --origin-type {file,repo,web,string}
+                        In what way the MD-origin-argument describes the origin
+                        of the markdown file to use. Defaults to file. The
+                        options mean: 
+                        * file: takes a relative or absolute path to a file
+                        * repo: takes a path to a markdown-file in a github
+                        repository, such as <user_name>/<repo_name>/<branch-
+                        name>/<path_to_markdown>.md 
+                        * web: takes an url to a markdown file
+                        * string: takes a string containing the files content
+  -w WEBSITE_ROOT, --website-root WEBSITE_ROOT
+                        Only relevant if you are creating the html for a static
+                        website which you manage using git or something similar.
+                        --html-root is the directory from which you serve your
+                        website (which is needed to correctly generate the links
+                        within the generated html, such as the link pointing to
+                        the css, since they are all root- relative), and can be
+                        a relative as well as an absolute path. Defaults to the
+                        directory you called this script from. If you intent to
+                        view the html file on your laptop instead of hosting it
+                        on a static site, website-root should be a dot and
+                        destination not set. The reason the generated html files
+                        use root-relative links to embed images is that on many
+                        static websites, https://foo/bar/index.html can be
+                        accessed via https://foo/bar, in which case relative
+                        (non-root- relative) links in index.html will be
+                        interpreted as relative to foo instead of bar, which can
+                        cause images not to load.
+  -d DESTINATION, --destination DESTINATION
+                        Where to store the generated html. This path is relative
+                        to --website-root. Defaults to "".
+  -i IMAGE_PATHS, --image-paths IMAGE_PATHS
+                        Where to store the images needed or generated for the
+                        html. This path is relative to website-root. Defaults to
+                        the "images"-folder within the destination folder.
+  -c CSS_PATHS, --css-paths CSS_PATHS
+                        Where to store the css needed for the html (as a path
+                        relative to the website root). Defaults to the
+                        "<WEBSITE_ROOT>/github-markdown-css"-folder.
+  -n OUTPUT_NAME, --output-name OUTPUT_NAME
+                        What the generated html file should be called like. Use
+                        <name> within the value to refer to the name of the
+                        markdown file that is being converted (if you don't use
+                        "-t string"). You can use '-n print' to print the file
+                        (if using the command line interface) or return it (if
+                        using the python module), both without saving it.
+  -p OUTPUT_PDF, --output-pdf OUTPUT_PDF
+                        If set, the file will also be saved as a pdf file in the
+                        same directory as the html file, using pdfkit, a python
+                        library which will also need to be installed for this to
+                        work. You may use the <name> variable in this value like
+                        you did in --output-name.
+  -s STYLE_PDF, --style-pdf STYLE_PDF
+                        If set to false, the generated pdf (only relevant if you
+                        use --output-pdf) will not be styled using github's css.
+  -f FOOTER, --footer FOOTER
+                        An optional piece of html which will be included as a
+                        footer where the 'hosted with <3 by github'-footer
+                        usually is. Defaults to None, meaning that the section
+                        usually containing said footer will be omitted
+                        altogether.
+  -m MATH, --math MATH  If set to True, which is the default, LaTeX-formulas
+                        using $formula$-notation will be rendered.
+  -r FORMULAS_SUPPORTING_DARKREADER, --formulas-supporting-darkreader FORMULAS_SUPPORTING_DARKREADER
+                        If set to true, formulas will be shown light if the
+                        darkreader .js library is included in the html and the
+                        user prefers darkmode. This is checked by looking for a
+                        script embedded from a src ending with "darkreader.js"
+                        and by checking the prefers-color- scheme option in the
+                        browser. You can also supply any other script src to
+                        look for. Please note that this won't have any effect
+                        unless you inject the darkreader .js library into the
+                        generated html; doing so is not included in this module.
