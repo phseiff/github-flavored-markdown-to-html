@@ -141,13 +141,12 @@ guesses the location of the image is shown in the following table, with the type
 <tr>
 <th></th>
 <th>
-<code>https://</code>�or <code>http://</code>
+<code>https://</code> or <code>http://</code>
 </th>
 <th align="center">abs. filepath</th>
 <th>rel. filepath</th>
-<th>starting with�<code>/</code>�(e.g. <code>/image.png</code>)</th>
-<th>not starting with <code>/</code>�(e.g. <code>image.png</code>)</th>
-<th></th>
+<th>starting with <code>/</code> (e.g. <code>/image.png</code>)</th>
+<th>not starting with <code>/</code> (e.g. <code>image.png</code>)</th>
 </tr>
 </thead>
 <tbody>
@@ -158,7 +157,6 @@ guesses the location of the image is shown in the following table, with the type
 <td>rel. filepath (from where the <code>.md</code>-file lies)</td>
 <td>-</td>
 <td>-</td>
-<td></td>
 </tr>
 <tr>
 <td><code>username/repo/dir/file.md -t repo</code></td>
@@ -167,16 +165,14 @@ guesses the location of the image is shown in the following table, with the type
 <td>-</td>
 <td><code>username/repo/imagedir/image.png</code></td>
 <td><code>username/repo/dir/imagedir/image.png</code></td>
-<td></td>
 </tr>
 <tr>
 <td><code>-t string</code></td>
 <td>from the address</td>
-<td align="center">abs.filepath, but needs confirmation for securty reasons</td>
+<td align="center">abs.filepath, but needs confirmation for security reasons</td>
 <td>rel. filepath (to where the tool is called from), but needs confirmation for security reasons</td>
 <td>-</td>
 <td>-</td>
-<td></td>
 </tr>
 <tr>
 <td><code>https://foo.com/bar/baz.md -t web</code></td>
@@ -185,13 +181,12 @@ guesses the location of the image is shown in the following table, with the type
 <td>-</td>
 <td><code>https://foo.com/image.png</code></td>
 <td><code>https://foo.com/bar/image.png</code></td>
-<td></td>
 </tr>
 </tbody>
 </table>
 <h2>
 <a id="user-content-demonstration" class="anchor" href="#demonstration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Demonstration</h2>
-<p>You can find this README-file hosted as a html <a href="https://phseiff.com/README.html" rel="nofollow">here</a>, or as a html with darkmode support <a href="https://phseiff.com/README-darkreader.html" rel="nofollow">here</a> (appears dark when your system preferences say you prefer it this way), or as a pdf with styling <a href="https://..." rel="nofollow">here</a> or without styling <a href="https://" rel="nofollow">here</a> (the html files where created from the root directory of this projects directory, which relates to the root directory of the site I am hosting them on).</p>
+<p>You can find this README-file hosted as a html <a href="https://phseiff.com/github-flavored-markdown-to-html/README.html" rel="nofollow">here</a>, or as a html with darkmode support <a href="https://phseiff.com/github-flavored-markdown-to-html/README-darkreader.html" rel="nofollow">here</a> (appears dark when your system preferences say you prefer it this way), or as a pdf with styling <a href="https://phseiff.com/github-flavored-markdown-to-html/README.pdf" rel="nofollow">here</a> or without styling here (the html files where created from the root directory of this projects directory, which relates to the root directory of the site I am hosting them on, using <code>python3 github-flavored-markdown-to-html/__init__.py github-flavored-markdown-to-html/README.md -d github-flavored-markdown-to-html/docs -c github-flavored-markdown-to-html/docs/css</code>).</p>
 <hr>
 <p><strong>DISCLAIMER</strong>: This module is neither written by Github, nor is it endorsed with Github,
 supported by Github, powered by Github or affiliated with Github. It only uses a public
