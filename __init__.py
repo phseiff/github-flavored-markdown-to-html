@@ -164,7 +164,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             formulas_supporting_darkreader = False
         html_rendered = html_with_math
         if formulas_supporting_darkreader:
-            with open("svg-color-changer.html", "r") as f:
+            with open_local("svg-color-changer.html", "r") as f:
                 html_rendered += "\n\n" + f.read().replace("{script_name}", darkreader_src)
 
     # find the images in there:
