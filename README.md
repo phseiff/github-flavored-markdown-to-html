@@ -170,6 +170,8 @@ I added the following demonstration, whose files where created from the root dir
 
 I also added a $formula$ here ($\sum_{i\ge e^2}^{7.3}\frac{4}{5}$) to demonstrate the formula rendering (which you won't see when viewing this README directly on github since, like I said, github usually doesn't support it.)
 
+A directory listing of the four example outputs can be found [here](https://phseiff.com/github-flavored-markdown-to-html/docs)
+
 ## Some Notes
 
 In case you are not happy with the margin left and right of the text, you can manually adjust it  by modifying the margin-values hardcoded in prototype.html in this repository.
