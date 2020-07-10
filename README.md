@@ -33,7 +33,7 @@ Advantages include:
 
 Use `pip3 install gh-md-to-html` to install directly from the python package index.
 
-Use
+Or use
 
 ```
 git clone https://github.com/phseiff/github-flavored-markdown-to-html.git
