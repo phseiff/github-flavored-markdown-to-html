@@ -16,6 +16,7 @@ setup(
     package_dir={'gh_md_to_html': 'src'},
     package_data={'gh_md_to_html': ['*']},
     include_package_data=True,
+    install_requires=open("requirements.txt", "r").read().splitlines(),
     license="LICENSE.txt",
     extras_require={
         'pdf_export': ["pdfkit"]
