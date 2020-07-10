@@ -31,7 +31,7 @@ Advantages include:
 
 ## Installation
 
-Use `pip3 install gh_md_to_html` to install directly from the python package index.
+Use `pip3 install gh-md-to-html` to install directly from the python package index.
 
 Use
 
