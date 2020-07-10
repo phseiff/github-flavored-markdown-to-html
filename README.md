@@ -33,9 +33,6 @@ Advantages include:
 
 Use
 
-
-
-
 ```
 git clone https://github.com/phseiff/github-flavored-markdown-to-html.git
 cd github-flavored-markdown-to-html
@@ -47,8 +44,8 @@ pip3 install .
 ## Usage
 
 If you want to access the interface with your command line, you can just supply
-`gh_markdown_to_html` with the arguments documented in th help text (accessible with
-`gh_markdown_to_html -h` and shown below.)
+`gh-md-to-html` with the arguments documented in th help text (accessible with
+`gh-md-to-html -h` and shown below.)
 
 If you want to access the interface via python, you can use
 
