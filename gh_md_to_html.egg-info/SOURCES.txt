@@ -1,9 +1,0 @@
-README.md
-setup.py
-./scripts/gh_md_to_html
-gh_md_to_html.egg-info/PKG-INFO
-gh_md_to_html.egg-info/SOURCES.txt
-gh_md_to_html.egg-info/dependency_links.txt
-gh_md_to_html.egg-info/requires.txt
-gh_md_to_html.egg-info/top_level.txt
-src/__init__.py
