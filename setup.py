@@ -7,6 +7,7 @@ setup(
     version='1.0',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
     scripts=['./scripts/gh-md-to-html'],
     author='phseiff',
     author_email='contact@phseiff.com',
