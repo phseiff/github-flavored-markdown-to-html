@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [[ ! $@ ]]; then
+    python3 -m gh_md_to_html -h
+else
+    python3 -m gh_md_to_html $@
+fi
