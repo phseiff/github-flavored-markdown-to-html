@@ -31,6 +31,8 @@ Advantages include:
 
 ## Installation
 
+Use `pip3 install gh_md_to_html` to install directly from the python package index.
+
 Use
 
 ```
@@ -39,7 +41,10 @@ cd github-flavored-markdown-to-html
 pip3 install .
 ```
 
-(might require `sudo` on Linux) and optionally `pip3 install pdfkit` (if you want to use the optional pdf features) to install it.
+to clone from master and add changes before installing.
+
+Both might require `sudo` on Linux, and you can optionally do `pip3 install pdfkit` (if you
+want to use the optional pdf features) to include pdf support into your installation.
 
 ## Usage
 
