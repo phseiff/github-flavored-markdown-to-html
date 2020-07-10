@@ -1,0 +1,7 @@
+README.md
+setup.py
+Distutils.egg-info/PKG-INFO
+Distutils.egg-info/SOURCES.txt
+Distutils.egg-info/dependency_links.txt
+Distutils.egg-info/top_level.txt
+src/__init__.py
