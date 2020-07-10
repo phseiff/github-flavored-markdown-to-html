@@ -32,8 +32,17 @@ Advantages include:
 ## Installation
 
 Use
-`pip3 install gh_md_to_html` (might require `sudo` on Linux) and optionally
-`pip3 install pdfkit` (if you want to use the optional pdf features) to install it.
+
+
+
+
+```
+git clone https://github.com/phseiff/github-flavored-markdown-to-html.git
+cd github-flavored-markdown-to-html
+pip3 install .
+```
+
+(might require `sudo` on Linux) and optionally `pip3 install pdfkit` (if you want to use the optional pdf features) to install it.
 
 ## Usage
 
@@ -170,7 +179,7 @@ I added the following demonstration, whose files where created from the root dir
 
 I also added a $formula$ here ($\sum_{i\ge e^2}^{7.3}\frac{4}{5}$) to demonstrate the formula rendering (which you won't see when viewing this README directly on github since, like I said, github usually doesn't support it.)
 
-A directory listing of the four example outputs can be found [here](https://phseiff.com/github-flavored-markdown-to-html/docs)
+A directory listing of the four example outputs can be found [here](https://phseiff.com/github-flavored-markdown-to-html/docs).
 
 ## Some Notes
 
