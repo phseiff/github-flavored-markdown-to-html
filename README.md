@@ -1,7 +1,7 @@
 # github-flavored-markdown-to-html
 
 Convert Markdown to html via python or with a command line interface. Uses [Githubs online
-Markdown-to-html-API](https://developer.github.com/v3/markdown/) as well as
+Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) as well as
 [Githubs Markdown-CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css).
 Requires internet connection to work.
 
@@ -29,9 +29,26 @@ Advantages include:
   .js-module, not nessesarily the browser extension. This means that formulas are displayed
   with a light text when in darkmode, amongst other things).
 
+Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
+all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
+assignment or other purposes where reliability weights more than beauty:
+
+* pandoc converts .md to LaTeX and then renders it to pdf, which means that images embedded in the .md are shown where
+  they fit best in the .pdf and not, how one would expect it from a .md-file, exactly where they were embedded.
+* pandoc supports formulas, but sometimes fails when rendering these formulas from LaTeX to HTML. The message given when
+  this happens shows the LaTeX line numbers instead of the .md line numbers, which makes it difficult to debug, and the
+  reason is usually just something along the lines of whitespace before or after the dollar sign, even though said
+  whitespace didn't lead to any problems in MarkText (which also often fails to export without any error message) or
+  other markdown editors. The worst thing that can happen with `gh-md-to-html`, on the other hand, is that a formula
+  isn't rendered at all, in which case the source of the problem can be easily found.
+* pandoc comes with multiple .md-to-LaTeX-engines to choose from when converting .md to .pdf, but all of these either
+  don't support nestled bullet-point lists and multiline bullet point entries (in case of the default engine) or don't
+  support formulas (in case of the other ones).
+
 ## Installation
 
-Use `pip3 install gh-md-to-html` to install directly from the python package index.
+Use `pip3 install gh-md-to-html` to install directly from the python package index, or `python3 -m pip install ...` if
+you are on windows.
 
 Or use
 
@@ -43,14 +60,15 @@ pip3 install .
 
 to clone from master and add changes before installing.
 
-Both might require `sudo` on Linux, and you can optionally do `pip3 install pdfkit` (if you
+Both might require `sudo` on Linux, and you can optionally do `python3 -m pip install pdfkit` (if you
 want to use the optional pdf features) to include pdf support into your installation.
 
 ## Usage
 
 If you want to access the interface with your command line, you can just supply
-`gh-md-to-html` with the arguments documented in th help text (accessible with
-`gh-md-to-html -h` and shown below.)
+`gh-md-to-html` with the arguments documented in the help text (accessible with
+`gh-md-to-html -h` and shown below). On windows, you must supply `python3 -m gh_md_to_html` with the corresponding
+arguments.
 
 If you want to access the interface via python, you can use
 
@@ -164,8 +182,8 @@ guesses the location of the image is shown in the following table, with the type
 |                                     | `https://` or `http://` | abs. filepath                                             | rel. filepath                                                                                 | starting with `/` (e.g. `/image.png`) | not starting with `/` (e.g. `image.png`) |
 | ----------------------------------- | ----------------------- |:---------------------------------------------------------:| --------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------- |
 | `-t file`                           | from the address        | abs. filepath                                             | rel. filepath (from where the `.md`-file lies)                                                | -                                     | -                                        |
-| `username/repo/dir/file.md -t repo` | from the address        | -                                                         | -                                                                                             | `username/repo/imagedir/image.png`    | `username/repo/dir/imagedir/image.png`   |
 | `-t string`                         | from the address        | abs.filepath, but needs confirmation for security reasons | rel. filepath (to where the tool is called from), but needs confirmation for security reasons | -                                     | -                                        |
+| `username/repo/dir/file.md -t repo` | from the address        | -                                                         | -                                                                                             | `username/repo/imagedir/image.png`    | `username/repo/dir/imagedir/image.png`   |
 | `https://foo.com/bar/baz.md -t web` | from the address        | -                                                         | -                                                                                             | `https://foo.com/image.png`           | `https://foo.com/bar/image.png`          |
 
 ## Demonstration
