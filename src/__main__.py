@@ -404,7 +404,8 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--output-name', default="<name>.html", help="""
     What the generated html file should be called like. Use <name> within the value to refer to the name of the markdown
     file that is being converted (if you don't use "-t string"). You can use '-n print' to print the file (if using
-    the command line interface) or return it (if using the python module), both without saving it.""")
+    the command line interface) or return it (if using the python module), both without saving it. Default is 
+    '<name>.html'.""")
 
     parser.add_argument('-p', '--output-pdf', help="""
     If set, the file will also be saved as a pdf file in the same directory as the html file, using pdfkit, a python
