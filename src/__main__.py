@@ -143,9 +143,12 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         raise Exception("origin_type must be either file, web, repo or string.")
 
     # request markdown-to-html-conversion from the github api:
-    headers = {"Content-Type": "text/plain"}
-    data = md_content
-    html_content = requests.post("https://api.github.com/markdown/raw", headers=headers, data=data).text
+    headers = {"Content-Type": "text/plain", "charset": "utf-8"}
+    data = str(md_content.encode('ascii', 'xmlcharrefreplace'), encoding="utf-8")
+    html_content = str(
+        requests.post("https://api.github.com/markdown/raw", headers=headers, data=data).content,
+        encoding="utf-8"
+    )
 
     # maybe create a footer:
     if footer:
@@ -288,34 +291,34 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     if output_pdf:
         try:
             import pdfkit
-        except:
+        except ImportError:
             raise Exception("""\
 Unfortunately, you need to have pdfkit installed to save as pdf. Find out how to install it here:
 https://pypi.org/project/pdfkit/""")
         # ensure the image links are absolute
-        links = [
+        links_in_general = [
                     str(image, encoding="UTF-8") for image in
-                    re.compile(rb'src="/([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
+                    re.compile(rb'src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
                 ] + [
                     str(image, encoding="UTF-8") for image in
-                    re.compile(rb'href="/([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-                ] + [
-                    str(image, encoding="UTF-8") for image in
-                    re.compile(rb'src="\./([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-                ] + [
-                    str(image, encoding="UTF-8") for image in
-                    re.compile(rb'href="\./([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
+                    re.compile(rb'href="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
                 ]
+        absolute_relative_links = [link[1:] for link in links_in_general if link.startswith("/")]
+        relative_links = [link for link in links_in_general if not link.startswith("/")]
+        links = absolute_relative_links + relative_links
+
         for link in links:
-            abs_path = os.path.join(os.getcwd(), abs_website_root.lstrip("./"), link)
-            if abs_path[1:3] == ":\\":
+            abs_path = os.path.join(os.getcwd(), abs_website_root.lstrip("/"), link)
+            if abs_path[1:3] == ":\\":  # <-- special treatment for windows paths
                 abs_path = (abs_path[0].lower() + "/" + abs_path[3:]).replace("\\", "/")
             abs_path = "file://" + abs_path
 
-            html_rendered = html_rendered.replace('src="/' + link, 'src="' + abs_path)
-            html_rendered = html_rendered.replace('href="/' + link, 'href="' + abs_path)
-            html_rendered = html_rendered.replace('src="./' + link, 'src="' + abs_path)
-            html_rendered = html_rendered.replace('href="./' + link, 'href="' + abs_path)
+            if link in absolute_relative_links:
+                html_rendered = html_rendered.replace('src="/' + link, 'src="' + abs_path)
+                html_rendered = html_rendered.replace('href="/' + link, 'href="' + abs_path)
+            elif link in relative_links:
+                html_rendered = html_rendered.replace('src="' + link, 'src="' + abs_path)
+                html_rendered = html_rendered.replace('href="' + link, 'href="' + abs_path)
 
         # remove the css if we want to save it without css:
         if not style_pdf:
