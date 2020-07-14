@@ -85,7 +85,7 @@ All arguments and how they work are documented in the help text of the program, 
 like this:
 
 ```
-usage: __init__.py [-h] [-t {file,repo,web,string}] [-w WEBSITE_ROOT]
+usage: __main__.py [-h] [-t {file,repo,web,string}] [-w WEBSITE_ROOT]
                    [-d DESTINATION] [-i IMAGE_PATHS] [-c CSS_PATHS]
                    [-n OUTPUT_NAME] [-p OUTPUT_PDF] [-s STYLE_PDF] [-f FOOTER]
                    [-m MATH] [-r FORMULAS_SUPPORTING_DARKREADER]
@@ -146,6 +146,7 @@ optional arguments:
                         "-t string"). You can use '-n print' to print the file
                         (if using the command line interface) or return it (if
                         using the python module), both without saving it.
+                        Default is '<name>.html'.
   -p OUTPUT_PDF, --output-pdf OUTPUT_PDF
                         If set, the file will also be saved as a pdf file in the
                         same directory as the html file, using pdfkit, a python
