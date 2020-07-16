@@ -1,8 +1,13 @@
-usage: __main__.py [-h] [-t {file,repo,web,string}] [-w WEBSITE_ROOT]
-                   [-d DESTINATION] [-i IMAGE_PATHS] [-c CSS_PATHS]
-                   [-n OUTPUT_NAME] [-p OUTPUT_PDF] [-s STYLE_PDF] [-f FOOTER]
-                   [-m MATH] [-r FORMULAS_SUPPORTING_DARKREADER]
-                   MD-origin
+usage: __main__.py [-h] [-t {file,repo,web,string}]
+                   [-w WEBSITE_ROOT [WEBSITE_ROOT ...]]
+                   [-d DESTINATION [DESTINATION ...]]
+                   [-i IMAGE_PATHS [IMAGE_PATHS ...]]
+                   [-c CSS_PATHS [CSS_PATHS ...]]
+                   [-n OUTPUT_NAME [OUTPUT_NAME ...]]
+                   [-p OUTPUT_PDF [OUTPUT_PDF ...]] [-s STYLE_PDF]
+                   [-f FOOTER [FOOTER ...]] [-m MATH]
+                   [-r FORMULAS_SUPPORTING_DARKREADER]
+                   MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
 python.
@@ -23,7 +28,7 @@ optional arguments:
                         name>/<path_to_markdown>.md 
                         * web: takes an url to a markdown file
                         * string: takes a string containing the files content
-  -w WEBSITE_ROOT, --website-root WEBSITE_ROOT
+  -w WEBSITE_ROOT [WEBSITE_ROOT ...], --website-root WEBSITE_ROOT [WEBSITE_ROOT ...]
                         Only relevant if you are creating the html for a static
                         website which you manage using git or something similar.
                         --html-root is the directory from which you serve your
@@ -41,18 +46,18 @@ optional arguments:
                         (non-root- relative) links in index.html will be
                         interpreted as relative to foo instead of bar, which can
                         cause images not to load.
-  -d DESTINATION, --destination DESTINATION
+  -d DESTINATION [DESTINATION ...], --destination DESTINATION [DESTINATION ...]
                         Where to store the generated html. This path is relative
                         to --website-root. Defaults to "".
-  -i IMAGE_PATHS, --image-paths IMAGE_PATHS
+  -i IMAGE_PATHS [IMAGE_PATHS ...], --image-paths IMAGE_PATHS [IMAGE_PATHS ...]
                         Where to store the images needed or generated for the
                         html. This path is relative to website-root. Defaults to
                         the "images"-folder within the destination folder.
-  -c CSS_PATHS, --css-paths CSS_PATHS
+  -c CSS_PATHS [CSS_PATHS ...], --css-paths CSS_PATHS [CSS_PATHS ...]
                         Where to store the css needed for the html (as a path
                         relative to the website root). Defaults to the
                         "<WEBSITE_ROOT>/github-markdown-css"-folder.
-  -n OUTPUT_NAME, --output-name OUTPUT_NAME
+  -n OUTPUT_NAME [OUTPUT_NAME ...], --output-name OUTPUT_NAME [OUTPUT_NAME ...]
                         What the generated html file should be called like. Use
                         <name> within the value to refer to the name of the
                         markdown file that is being converted (if you don't use
@@ -60,7 +65,7 @@ optional arguments:
                         (if using the command line interface) or return it (if
                         using the python module), both without saving it.
                         Default is '<name>.html'.
-  -p OUTPUT_PDF, --output-pdf OUTPUT_PDF
+  -p OUTPUT_PDF [OUTPUT_PDF ...], --output-pdf OUTPUT_PDF [OUTPUT_PDF ...]
                         If set, the file will also be saved as a pdf file in the
                         same directory as the html file, using pdfkit, a python
                         library which will also need to be installed for this to
@@ -69,7 +74,7 @@ optional arguments:
   -s STYLE_PDF, --style-pdf STYLE_PDF
                         If set to false, the generated pdf (only relevant if you
                         use --output-pdf) will not be styled using github's css.
-  -f FOOTER, --footer FOOTER
+  -f FOOTER [FOOTER ...], --footer FOOTER [FOOTER ...]
                         An optional piece of html which will be included as a
                         footer where the 'hosted with <3 by github'-footer
                         usually is. Defaults to None, meaning that the section

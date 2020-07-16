@@ -426,10 +426,17 @@ https://pypi.org/project/pdfkit/""")
         else:
             output_pdf.replace("<name>", file_name_origin)
 
-        # finally convert it:
-        pdfkit.from_string(
-            html_rendered, os.path.join(destination, output_pdf),
+        # Finally convert it:
+        # (this saving and then converting ensures we don't convert links like https:foo to
+        # absolute_path_to_file_location/https://foo)
+        with open(os.path.join(abs_destination, output_name + ".html"), "w+") as f:
+            f.write(html_rendered)
+        pdfkit.from_file(
+            os.path.join(abs_destination, output_name + ".html"),
+            os.path.join(destination, output_pdf),
+            options=dict() if DEBUG else {'quiet': ''},
         )
+        os.remove(os.path.join(abs_destination, output_name + ".html"))
 
         # return the result
         return html_rendered
@@ -450,7 +457,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Convert markdown to HTML using the GitHub API and some additional tweaks with python.',
     )
-    parser.add_argument('md_origin', metavar='MD-origin',
+
+    class FuseInputString(argparse.Action):
+        """Ugly workaround because argparse seems to not take input with spaces just as it is (as long as it is
+        properly quoted in the shell and passed to sys.argv as a whole), but instead fuses all elements of sys.argv
+        and parses them afterwords 🙄"""
+        def __call__(self, p, namespace, values, option_string=""):
+            setattr(namespace, self.dest, " ".join(values))
+
+    parser.add_argument('md_origin', nargs="+", metavar='MD-origin', action=FuseInputString,
                         help='Where to find the markdown file that should be converted to html')
 
     parser.add_argument('-t', '--origin-type', choices=["file", "repo", "web", "string"], default="file",
@@ -463,7 +478,7 @@ if __name__ == "__main__":
     * web: takes an url to a markdown file
     * string: takes a string containing the files content"""))
 
-    parser.add_argument('-w', '--website-root', help="""
+    parser.add_argument('-w', '--website-root', nargs="+", action=FuseInputString, help="""
     Only relevant if you are creating the html for a static website which you manage using git or something similar.
     --html-root is the directory from which you serve your website (which is needed to correctly generate the links
     within the generated html, such as the link pointing to the css, since they are all root-relative),
@@ -477,24 +492,24 @@ if __name__ == "__main__":
     # ToDo: Allow the use of any --website-root even if one wants to view the files locally, as long as destination is
     #  a dot.
 
-    parser.add_argument('-d', '--destination', help="""
+    parser.add_argument('-d', '--destination', nargs="+", action=FuseInputString, help="""
     Where to store the generated html. This path is relative to --website-root. Defaults to "".""")
 
-    parser.add_argument('-i', '--image-paths', help="""
+    parser.add_argument('-i', '--image-paths', nargs="+", action=FuseInputString, help="""
     Where to store the images needed or generated for the html. This path is relative to website-root. Defaults to the
     "images"-folder within the destination folder.""")
 
-    parser.add_argument('-c', '--css-paths', help="""
+    parser.add_argument('-c', '--css-paths', nargs="+", action=FuseInputString, help="""
     Where to store the css needed for the html (as a path relative to the website root). Defaults to the
     "<WEBSITE_ROOT>/github-markdown-css"-folder.""")
 
-    parser.add_argument('-n', '--output-name', default="<name>.html", help="""
+    parser.add_argument('-n', '--output-name', nargs="+", action=FuseInputString, default="<name>.html", help="""
     What the generated html file should be called like. Use <name> within the value to refer to the name of the markdown
     file that is being converted (if you don't use "-t string"). You can use '-n print' to print the file (if using
     the command line interface) or return it (if using the python module), both without saving it. Default is 
     '<name>.html'.""")
 
-    parser.add_argument('-p', '--output-pdf', help="""
+    parser.add_argument('-p', '--output-pdf', nargs="+", action=FuseInputString, help="""
     If set, the file will also be saved as a pdf file in the same directory as the html file, using pdfkit, a python
     library which will also need to be installed for this to work. You may use the <name> variable in this value like
     you did in --output-name.""")
@@ -503,7 +518,7 @@ if __name__ == "__main__":
     If set to false, the generated pdf (only relevant if you use --output-pdf) will not be styled using github's css.
     """)
 
-    parser.add_argument('-f', '--footer', help="""
+    parser.add_argument('-f', '--footer', nargs="+", action=FuseInputString, help="""
     An optional piece of html which will be included as a footer where the 'hosted with <3 by github'-footer usually is.
     Defaults to None, meaning that the section usually containing said footer will be omitted altogether.
     """)
