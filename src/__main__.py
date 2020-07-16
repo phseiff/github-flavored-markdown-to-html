@@ -1,21 +1,21 @@
 """Convert Markdown to html via python or with a command line interface."""
 
-
 import textwrap
 from abc import ABC
 
 import requests
+import string
+import random
 import re
 import argparse
 import sys
 import os
 from PIL import Image
 from io import BytesIO
-import html
 from urllib.parse import quote
-from html.parser import HTMLParser
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
+DEBUG = True  # weather to print debug information
 
 
 def open_local(path, mode):
@@ -25,71 +25,145 @@ def open_local(path, mode):
 HELP = open_local("help.txt", "r").read()
 
 
-# A parser to find formulas within an html file:
+def is_not_escaped(s: str, i: int):
+    """Returns True if the i-th character of the string s is not escaped using a "\\"-symbol"""
+    return i == 0 or s[i - 1] != "\\"
 
 
-class FindFormulasInHtml(HTMLParser, ABC):
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.is_in_code = False
-        self.results = []
+def get_key_of_item(d: dict, i: str) -> str:
+    """Returns the key of item (string) i in dict d, or None if i is not in d."""
+    for key, item in d.items():
+        if item == i:
+            return key
+    return ""
 
-    def parse(self, html_rendered):
-        self.feed(html_rendered)
-        html_rendered_in_lines = html_rendered.split("\n")
-        # print("results:", self.results)
-        for r in range(len(self.results)):
-            result = self.results[r]
-            if result[0][0][0] == result[0][1][0]:  # ensure we don't have multiline formulas!
-                # print("result:", result)
-                line_number = result[0][0][0]
-                char_range = slice(result[0][0][1], result[0][1][1])
-                line_center = html_rendered_in_lines[line_number][char_range]
-                line_left = html_rendered_in_lines[line_number][:result[0][0][1]]
-                line_right = html_rendered_in_lines[line_number][result[0][1][1]:]
-                line_growth = 0
-                # print("line_left:", line_left)
-                # print("line_center:", line_center)
-                # print("line_right:", line_right)
-                while line_center.count("$") >= 2:
-                    line_center_left, line_center = line_center.split("$", 1)
-                    line_center, line_center_right = line_center.split("$", 1)
-                    line_center = html.unescape(line_center)
-                    old_line_center_length = len(line_center)
-                    svg_image_code = requests.get(
-                        url="https://latex.codecogs.com/svg.latex?" + quote(line_center)
-                    ).text
-                    svg_image_code = svg_image_code.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[1]
-                    svg_image_code = svg_image_code.replace('<svg', '<svg style="vertical-align: middle"')
-                    line_center = svg_image_code.replace('<path', '<path class="formula"')
-                    new_line_center_length = len(line_center)
-                    line_growth += new_line_center_length - old_line_center_length
-                    line_center = line_center_left + line_center + line_center_right
-                    # print("new line center:", line_center)
-                for result in self.results:
-                    if result[0][0][0] == line_number:
-                        result[0][0] = (result[0][0][0], result[0][0][1] + line_growth)
-                        # result[0][1] = (result[0][1][0], result[0][1][1] + line_growth)
-                html_rendered_in_lines[line_number] = line_left + line_center + line_right
-                # print("new line:", html_rendered_in_lines[line_number])
-        return "\n".join(html_rendered_in_lines)
 
-    def handle_starttag(self, tag, attrs):
-        if self.results and self.results[-1][0][1] == "?":
-            self.results[-1][0][1] = (self.getpos()[0] - 1, self.getpos()[1])
-        if tag == "code":
-            self.is_in_code = True
+def get_random_string(starting_letter: str):
+    """Returns a random string starting with starting_letter, consisting of letters (uppercase and lowercase) and
+    numbers."""
+    return starting_letter + ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
 
-    def handle_endtag(self, tag):
-        if self.results and self.results[-1][0][1] == "?":
-            self.results[-1][0][1] = (self.getpos()[0] - 1, self.getpos()[1])
-        if tag == "code":
-            self.is_in_code = False
 
-    def handle_data(self, data):
-        if not self.is_in_code:
-            # print("We got:", self.getpos(), data)
-            self.results.append([[(self.getpos()[0] - 1, self.getpos()[1]), "?"], data])
+def get_fitting_replacement(thing_to_replace: str, table_of_replacement: dict, text_to_replace_in: str, s: str):
+    """Takes a thing for which a replacement is searched, a table mapping replacements to the things they stand for,
+    and a string in which the replacement should be done. Returns a string to replace with, which is either the key
+    of thing_to_replace_with in table_of_replacements, if it already exists in there, or a completely newly generated
+    random string if not. s is a string with which every replacement has to start."""
+    replacement = get_key_of_item(table_of_replacement, thing_to_replace)
+    if not replacement:
+        while replacement in table_of_replacement or replacement in text_to_replace_in:
+            replacement = get_random_string(s)
+    return replacement
+
+
+def find_and_replace_formulas_in_markdown(md: str, replace_formulas=True):
+    """Takes markdown as a string and returns the markdown, but every formula is replaced with a random string, as well
+    as a dict to translate these strings back to the formulas. This is done to evade the problem that special characters
+    in formulas should not be escaped and that they should not be interpreted, e.g. as code etc.
+    Non-ascii characters in multiline code blocks also get replaced with random strings, and the third return
+    parameter is a dict mapping these replacements back to these non-ascii characters; otherwise, they would not be
+    transmitted correctly over to the github REST api and ultimately be lost. Replacing them with html encodings is
+    not possible either since GitHub's api uses <pre>-blocks for multiline code.
+    If replace_formulas is set to false, formula replacement wil be omitted and only special characters in code blocks
+    will be replaced."""
+    md_lines = md.splitlines()
+    formulas = dict()
+    special_characters_in_code = dict()
+    inside_multiline_code = False
+    for line_number in range(len(md_lines)):
+        line = md_lines[line_number]
+        if line.strip().startswith("```"):
+            inside_multiline_code = not inside_multiline_code
+            continue
+        if not inside_multiline_code:
+            inside_inline_code = False
+            formula_start = 0
+            in_formula = False
+            if replace_formulas:
+                i = -1
+                while i < len(line) - 1:
+                    i += 1
+                    if not inside_multiline_code:
+                        if line[i] == "$" and is_not_escaped(line, i) and not inside_inline_code:
+                            if not in_formula:
+                                in_formula = True
+                                formula_start = i + 1
+                            else:
+                                in_formula = False
+                                formula_close = i
+                                # store formula and start iterating over the line again:
+                                formula = line[formula_start:formula_close]
+                                replacement = get_fitting_replacement(formula, formulas, md, "f")
+                                formulas[replacement] = formula
+                                line = line[:formula_start - 1] + replacement + line[formula_close + 1:]
+                                i = -1
+                        elif line[i] == "`" and is_not_escaped(line, i) and not in_formula:
+                            inside_inline_code = not inside_inline_code
+                line = line.replace("\\$", "$")
+            line = str(line.encode('ascii', 'xmlcharrefreplace'), encoding="utf-8")
+        else:
+            for character in set(line):
+                if character not in string.printable:
+                    replacement = get_fitting_replacement(character, special_characters_in_code, md, "c")
+                    special_characters_in_code[replacement] = character
+                    line = line.replace(character, replacement)
+        md_lines[line_number] = line
+
+    return "\n".join(md_lines), formulas, special_characters_in_code
+
+
+def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_characters_in_code: dict):
+    """Takes some html (generated from markdown by the online github API) and a dictionary which maps a number of
+    sequences to a number of formulas, and replaces each sequence with a LaTeX-rendering of the corresponding formula.
+    The third parameter is a dictionary mapping replacements to special characters for use in code blocks.
+    """
+
+    # replace formulas:
+    client = requests.session()
+    svg_re_pattern = re.compile(r"""<path[^>]+id\s*=\s*['\"]([^'\"]+)['\"][^>]*>""")
+    amount_of_svg_formulas = 0
+    for sequence, formula in formulas.items():
+        formula_rendered = client.get(
+            url="https://latex.codecogs.com/svg.latex?" + quote(formula)
+        ).text
+        svg_path_ids = [path_id for path_id in svg_re_pattern.findall(formula_rendered)]
+        for svg_path_id in svg_path_ids:
+            new_svg_path_id = svg_path_id + "n" + str(amount_of_svg_formulas)
+            formula_rendered = formula_rendered.replace("id='" + svg_path_id + "'", "id='" + new_svg_path_id + "'")
+            formula_rendered = formula_rendered.replace("xlink:href='#" + svg_path_id + "'", "xlink:href='#"
+                                                        + new_svg_path_id + "'")
+        if DEBUG:
+            print(" ---    FORMULA:", formula, " --- quoted:", quote(formula), " --- url:",
+                  "https://latex.codecogs.com/svg.latex?" + quote(formula), " --- svg-paths:", svg_path_ids)
+        formula_rendered = formula_rendered.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[1]
+        formula_rendered = formula_rendered.replace('<svg', '<svg style="vertical-align: middle"')
+        formula_rendered = formula_rendered.replace('<path', '<path class="formula"')
+        html_text = html_text.replace(
+            sequence,
+            formula_rendered
+        )
+        amount_of_svg_formulas += 1
+
+    # replace special characters:
+    for sequence, special_character in special_characters_in_code.items():
+        html_text = html_text.replace(
+            sequence,
+            special_character
+        )
+
+    return html_text
+
+
+def str2bool(v):
+    """Convert a string taken as a confirmation or objection to a bool."""
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 # The main function:
@@ -110,6 +184,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     if css_paths is None:
         css_paths = "github-markdown-css"
     if formulas_supporting_darkreader in ("false", False):
+        darkreader_src = ""
         formulas_supporting_darkreader = False
     elif formulas_supporting_darkreader in ("true", True):
         darkreader_src = "*darkreader.js"
@@ -142,13 +217,31 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     else:
         raise Exception("origin_type must be either file, web, repo or string.")
 
+    if DEBUG:
+        print("\n------------\nOriginal content:\n------------\n\n", md_content)
+
+    # replace formulas with random sequences and get a dict to map them back:
+    md_content, formula_mapper, special_chars_in_code_blocks = find_and_replace_formulas_in_markdown(md_content, math)
+
+    if DEBUG:
+        print("\n------------\nOriginal Content (Formulas replaced):\n------------\n\n", md_content)
+        print("\n------------\nFormula Map:\n------------\n\n", formula_mapper)
+
     # request markdown-to-html-conversion from the github api:
     headers = {"Content-Type": "text/plain", "charset": "utf-8"}
-    data = str(md_content.encode('ascii', 'xmlcharrefreplace'), encoding="utf-8")
     html_content = str(
-        requests.post("https://api.github.com/markdown/raw", headers=headers, data=data).content,
+        requests.post("https://api.github.com/markdown/raw", headers=headers, data=md_content).content,
         encoding="utf-8"
     )
+
+    if DEBUG:
+        print("\n------------\nHtml content:\n------------\n\n", html_content)
+
+    # re-insert formulas in html, this time as proper svg images:
+    html_content = find_and_render_formulas_in_html(html_content, formula_mapper, special_chars_in_code_blocks)
+
+    if DEBUG:
+        print("\n------------\nHtml content (with properly rendered formulas):\n------------\n\n", html_content)
 
     # maybe create a footer:
     if footer:
@@ -156,7 +249,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     else:
         footer = ""
 
-    # fill it into our template:
+    # fill everything into our template, to link the html to the .css-file etc.:
     with open_local("prototype.html", "r") as f:
         html_rendered = f.read().format(
             article=html_content,
@@ -164,23 +257,24 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             footer=footer
         )
 
-    # render math formulas:
-    if math:
-        html_with_math = FindFormulasInHtml().parse(html_rendered)
-        if not (html_with_math != html_rendered and formulas_supporting_darkreader):
-            formulas_supporting_darkreader = False
-        html_rendered = html_with_math
-        if formulas_supporting_darkreader:
-            with open_local("svg-color-changer.html", "r") as f:
-                html_rendered += "\n\n" + f.read().replace("{script_name}", darkreader_src)
+    if DEBUG:
+        print("\n------------\nHtml rendered:\n------------\n\n", html_rendered)
 
-    # find the images in there:
+    # ensure darkreader is supported if we have formulas:
+    if formulas_supporting_darkreader and formula_mapper:
+        with open_local("svg-color-changer.html", "r") as f:
+            html_rendered += "\n\n" + f.read().replace("{script_name}", darkreader_src)
+
+    if DEBUG:
+        print("\n------------\nHtml rendered (with darkreader support):\n------------\n\n", html_rendered)
+
+    # find the images referenced within the file:
     images = [
         str(image, encoding="UTF-8") for image in
         re.compile(rb'<img [^>]*src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
     ]
 
-    # ensure we have them all in the images path:
+    # ensure we have all the images in the images path:
     saved_image_names = set()
     for image_src in images:
         print(image_src)
@@ -272,6 +366,9 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             ("/" if website_root != "." else "") + image_paths + "/" + save_image_as
         )
 
+    if DEBUG:
+        print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
+
     # ensure we have the css where we want it to be:
     with open_local("github-css.css", "r") as from_f:
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
@@ -297,12 +394,12 @@ Unfortunately, you need to have pdfkit installed to save as pdf. Find out how to
 https://pypi.org/project/pdfkit/""")
         # ensure the image links are absolute
         links_in_general = [
-                    str(image, encoding="UTF-8") for image in
-                    re.compile(rb'src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-                ] + [
-                    str(image, encoding="UTF-8") for image in
-                    re.compile(rb'href="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-                ]
+                               str(image, encoding="UTF-8") for image in
+                               re.compile(rb'src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
+                           ] + [
+                               str(image, encoding="UTF-8") for image in
+                               re.compile(rb'href="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
+                           ]
         absolute_relative_links = [link[1:] for link in links_in_general if link.startswith("/")]
         relative_links = [link for link in links_in_general if not link.startswith("/")]
         links = absolute_relative_links + relative_links
@@ -338,27 +435,15 @@ https://pypi.org/project/pdfkit/""")
         # return the result
         return html_rendered
 
+# Setting the doc string for the main function:
 
-# Something I used to test this module out:
-# main(md_origin="wowo `code $blabla$ ` wuwu $wiwi <wuwu $ test2 $formula$ \n```\n\n wiwi \n $LaTeX$ \n\nmm\n```",
-#      origin_type="string",
-#      website_root=".", output_name="math_test.html", formulas_supporting_darkreader=True)
 
 main.__doc__ = """\
 Use this function like the command line interface:
 --------------------------------------------------
 """ + HELP
 
-
-def str2bool(v):
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+# Reacting appropriately if code is called from command line interface:
 
 
 if __name__ == "__main__":
@@ -463,8 +548,11 @@ if __name__ == "__main__":
                         break
     help_text = "\n".join(help_text_lines)
 
-    with open_local("help.txt", "w") as help_file:
-        help_file.write(help_text)
+    try:
+        with open_local("help.txt", "w") as help_file:
+            help_file.write(help_text)
+    except OSError:
+        pass  # running an installation installed with sudo.
 
     # This hackish ensures the bullet points in the help menu generated by argparse get printed correctly.
     if "-h" in sys.argv or "--help" in sys.argv:
