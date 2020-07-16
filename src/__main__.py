@@ -1,8 +1,6 @@
 """Convert Markdown to html via python or with a command line interface."""
 
 import textwrap
-from abc import ABC
-
 import requests
 import string
 import random
@@ -15,7 +13,7 @@ from io import BytesIO
 from urllib.parse import quote
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
-DEBUG = True  # weather to print debug information
+DEBUG = False  # weather to print debug information
 
 
 def open_local(path, mode):
