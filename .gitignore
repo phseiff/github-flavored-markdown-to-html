@@ -1,3 +1,7 @@
 Distutls.egg-info/*
 build/*
 gh_md_to_html.egg-info/*
+github-markdown-css/*
+images/*
+test.html
+math_test.html
