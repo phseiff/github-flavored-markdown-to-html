@@ -302,7 +302,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                 # This is a security risk since web content might get one to embed local images from ones disk
                 # into ones website when automatically cloning .md-files found online.
                 input("""press enter if you are sure you trust that string. Remove this line if this is always
-                the case when inputting strings.""")
+the case when inputting strings.""")
 
             if origin_type in ("repo", "web"):
                 # create website domain name and specific path from md_origin depending on whether we pull from
