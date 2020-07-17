@@ -1,7 +1,7 @@
 # Image embedding Test
 
 Done using
-`gh-md-to-html phseiff/github-flavored-markdown-to-html/master/docs/image_test_from_repo.md -d github-flavored-markdown-to-html/docs -c github-flavored-markdown-to-html/docs/css -t repo`
+`gh-md-to-html phseiff/github-flavored-markdown-to-html/master/docs/image_test_from_repo.md -d github-flavored-markdown-to-html/docs -c github-flavored-markdown-to-html/docs/css -t repo`.
 
 ## Image from url:
 
