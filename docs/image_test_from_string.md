@@ -28,6 +28,6 @@ gh_md_to_html.main(
 (the image lies in `/home/phseiff/image_test_from_file.jpeg` and I am using
 Ubuntu, obviously)
 
-![image3](/home/philipp/image_test_from_file.jpeg)
+![image3](/home/phseiff/image_test_from_file.jpeg)
 
 Note: It is correctly asked for confirmation before embedding the images from disk.
