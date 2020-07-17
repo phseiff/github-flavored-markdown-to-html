@@ -8,7 +8,8 @@ gh_md_to_html.main(
     open("github-flavored-markdown-to-html/docs/image_test_from_string.md", "r").read(),
     origin_type="string",
     destination="github-flavored-markdown-to-html/docs",
-    css_paths="github-flavored-markdown-to-html/docs/css"
+    css_paths="github-flavored-markdown-to-html/docs/css",
+    output_name="image_test_from_string.html"
 )
 ```
 
@@ -20,7 +21,7 @@ gh_md_to_html.main(
 
 (the image is placed within the cwd for this to work)
 
-![image2](image_test_from_file.jpeg)
+![image2](github-flavored-markdown-to-html/docs/image_test_from_file.jpeg)
 
 ## Image from absolute file path
 

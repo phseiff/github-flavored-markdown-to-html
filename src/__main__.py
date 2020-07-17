@@ -274,15 +274,20 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     ]
 
     # ensure we have all the images in the images path:
-    saved_image_names = set()
-    for image_src in images:
-        print(image_src)
+    saved_image_names = set(  # <-- defines which images we already have within our image directory
+        image_name.rsplit(".", 1)[0]
+        for image_name in os.listdir(abs_image_paths)
+        if os.path.isfile(os.path.join(abs_image_paths, image_name))
+    )
+    for image_src in images:  # <-- Iterates over all images referenced in the markdown file
+        # print(image_src)
         original_markdown_image_src = image_src
         save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
         save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
         save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
         while save_image_as in saved_image_names or not save_image_as:
             save_image_as += "_"
+        saved_image_names.add(save_image_as)
         if image_src.startswith("./"):
             image_src = image_src[2:]
 
@@ -309,7 +314,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                             + "/" + repo_name +
                             "/raw/" + branch_name
                     )
-                    url_full = url_root + "/" + "/".join(path) + "/"
+                    url_full = url_root + "/" + "/".join(path[:-1]) + "/"
                 else:  # origin_type == "web":
                     url_root = "/".join(md_origin.split("/")[:3])
                     url_full = md_origin.rsplit("/", 1)[0] + "/"
@@ -325,16 +330,18 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                 # get the current directory (for relative file paths) depending on the origin_type
                 if origin_type == "file":
                     location = md_origin.rsplit(os.sep, 1)[0]
+                    if not os.path.isabs(location):
+                        location = os.path.join(os.getcwd(), location)
                 elif origin_type == "string":
                     location = os.getcwd()
                 # check if we have an absolute or a non-absolute path
-                if os.path.abspath(image_src):
+                if os.path.isabs(image_src):
                     image_src = image_src
                 else:
                     image_src = os.path.join(location, image_src.replace("/", os.sep))
                 load_from_web = False
 
-        # load with a mothod appropriate for the type of source
+        # load with a method appropriate for the type of source
         if load_from_web:
             try:
                 img_object = Image.open(BytesIO(requests.get(image_src).content))
@@ -345,11 +352,10 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
         # save the image:
         try:
-            extension = "." + img_object.format
+            extension = "." + img_object.format.lower()
         except AttributeError:
             extension = ".svg"
         save_image_as += extension
-        saved_image_names.add(save_image_as)
         cached_image_path = os.path.join(abs_image_paths, save_image_as)
         try:
             img_object.save(cached_image_path)
@@ -361,8 +367,12 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         # print("caged image path:", cached_image_path, ":")
         # print("in:", original_image in html_rendered)
         html_rendered = html_rendered.replace(
-            original_markdown_image_src,
-            ("/" if website_root != "." else "") + image_paths + "/" + save_image_as
+            '<img src="' + original_markdown_image_src + '"',
+            '<img src="' + ("/" if website_root != "." else "") + image_paths + "/" + save_image_as + '"'
+        )
+        html_rendered = html_rendered.replace(
+            '<a href="' + original_markdown_image_src + '"',
+            '<a href="' + ("/" if website_root != "." else "") + image_paths + "/" + save_image_as + '"'
         )
 
     if DEBUG:
