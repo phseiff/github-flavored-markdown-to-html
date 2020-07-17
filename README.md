@@ -221,10 +221,6 @@ An other thing to note is that, even though gh-md-to-html supports multi line fo
 formula requires two of these. However, if you use two single dollar signs in two different columns of the same row off a table, your table will break. In the end, you are always better
 off properly escaping dollar signs, even though we give you the freedom not to do so on one occasion per line!
 
-#### Known Limitations:
-
-gh-md-to-html supports multiline
-
 ----
 
 **DISCLAIMER**: This module is neither written by Github, nor is it endorsed with Github,
