@@ -16,4 +16,4 @@ Done using
 (the image lies in `/home/phseiff/image_test_from_file.jpeg` and I am using
 Ubuntu, obviously)
 
-![image3](/home/philipp/image_test_from_file.jpeg)
+![image3](/home/phseiff/image_test_from_file.jpeg)
