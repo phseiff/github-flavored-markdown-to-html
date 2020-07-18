@@ -34,15 +34,15 @@ all), gh-md-to-html has its own set of advantages when it comes to quickly conve
 assignment or other purposes where reliability weights more than beauty:
 
 * pandoc converts .md to LaTeX and then renders it to pdf, which means that images embedded in the .md are shown where
-  they fit best in the .pdf and not, how one would expect it from a .md-file, exactly where they were embedded.
+  they fit best in the .pdf and not, as one would expect it from a .md-file, exactly where they were embedded.
 * pandoc's pandoc-flavored markdown supports formulas; however, some specific rules apply regarding the amount of
-  whitespace cornering the `$`-signs and what characters the formula starts with. These rules do not apply in some
+  whitespace cornering the `$`-signs and what characters the formula may start with. These rules do not apply in some
   common markdown editors like MarkText, though, which leads to lots of frustration when formulas that worked in the
-  editor don't work anymore when converting with pandoc (MarkText's own export-to-pdf-function sometimes fails on
-  formula-heavy files without an error message, though, which makes it even less reliable). The worst part is that,
+  editor don't work anymore when converting with pandoc; MarkText's own export-to-pdf-function sometimes fails on
+  formula-heavy files without an error message, though, which makes it even less reliable. The worst part is that,
   whenever pandoc fails converting .md to .pdf because of formulas, it shows the line number of the error based on the
-  .tex which works as an intermediate format in the background instead of based on the actual line numbering of the
-  input markdown file, which makes it difficult to find the problem's root.
+  intermediate .tex-file instead of based on the actual line numbering of the input markdown file, which makes it
+  difficult to find the problem's root.
   As you might have guessed, gh-md-to-html couldn't care less about the amount of whitespace you start your formulas
   with, leaving the decision up to you.
 * pandoc supports multiple markdown flavors. The sole inline-formula-supporting one of those is pandoc-flavored
