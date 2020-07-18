@@ -38,19 +38,17 @@ assignment or other purposes where reliability weights more than beauty:
 * pandoc's pandoc-flavored markdown supports formulas; however, some specific rules apply regarding the amount of
   whitespace cornering the `$`-signs and what characters the formula may start with. These rules do not apply in some
   common markdown editors like MarkText, though, which leads to lots of frustration when formulas that worked in the
-  editor don't work anymore when converting with pandoc; MarkText's own export-to-pdf-function sometimes fails on
-  formula-heavy files without an error message, though, which makes it even less reliable. The worst part is that,
-  whenever pandoc fails converting .md to .pdf because of formulas, it shows the line number of the error based on the
-  intermediate .tex-file instead of based on the actual line numbering of the input markdown file, which makes it
-  difficult to find the problem's root.
+  editor don't work anymore when converting with pandoc (MarkText's own export-to-pdf-function sometimes fails on
+  formula-heavy files without an error message, though, which makes it even less reliable). The worst part is that,
+  whenever pandoc fails converting .md to .pdf because of this, it shows the line number of the error based on the
+  intermediate .tex-file instead of the input .md-file, which makes it difficult to find the problem's root.
   As you might have guessed, gh-md-to-html couldn't care less about the amount of whitespace you start your formulas
   with, leaving the decision up to you.
-* pandoc supports multiple markdown flavors. The sole inline-formula-supporting one of those is pandoc-flavored
-  markdown, which comes with some quite specific requirements regarding the amount of trailing
-  whitespace before a sub-list in a nested list, and other requirements to create multi-line bullet point entries.
-  These requirements are not fulfilled my many markdown-editors (such as MarkText) and not required by many other
-  markdown flavors, causing pandoc to not render multiline bullet point entries and nestled lists correctly in many
-  cases.
+* pandoc supports multiple markdown flavors. The sole formula-supporting one of these is pandoc-flavored markdown, which
+  comes with some quite specific requirements regarding the amount of trailing whitespace before a sub-list in a nested
+  list, and other requirements to create multi-line bullet point entries. These requirements are not fulfilled my many
+  markdown-editors (such as MarkText) and not required by many other markdown flavors, causing pandoc to not render
+  multiline bullet point entries and nestled lists correctly in many cases.
   gh-md-to-html, on the other hand, supports **both** nested lists like you would expect it, **and** formulas, releasing
   the burden of having to edit entire markdown files to make then work with pandoc's md-to-html-conversion from your
   shoulders.
