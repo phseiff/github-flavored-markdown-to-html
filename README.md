@@ -35,15 +35,28 @@ assignment or other purposes where reliability weights more than beauty:
 
 * pandoc converts .md to LaTeX and then renders it to pdf, which means that images embedded in the .md are shown where
   they fit best in the .pdf and not, how one would expect it from a .md-file, exactly where they were embedded.
-* pandoc supports formulas, but sometimes fails when rendering these formulas from LaTeX to HTML. The message given when
-  this happens shows the LaTeX line numbers instead of the .md line numbers, which makes it difficult to debug, and the
-  reason is usually just something along the lines of whitespace before or after the dollar sign, even though said
-  whitespace didn't lead to any problems in MarkText (which also often fails to export without any error message) or
-  other markdown editors. The worst thing that can happen with `gh-md-to-html`, on the other hand, is that a formula
-  isn't rendered at all, in which case the source of the problem can be easily found.
-* pandoc comes with multiple .md-to-LaTeX-engines to choose from when converting .md to .pdf, but all of these either
-  don't support nestled bullet-point lists and multiline bullet point entries (in case of the default engine) or don't
-  support formulas (in case of the other ones).
+* pandoc's pandoc-flavored markdown supports formulas; however, some specific rules apply regarding the amount of
+  whitespace cornering the `$`-signs and what characters the formula starts with. These rules do not apply in some
+  common markdown editors like MarkText, though, which leads to lots of frustration when formulas that worked in the
+  editor don't work anymore when converting with pandoc (MarkText's own export-to-pdf-function sometimes fails on
+  formula-heavy files without an error message, though, which makes it even less reliable). The worst part is that,
+  whenever pandoc fails converting .md to .pdf because of formulas, it shows the line number of the error based on the
+  .tex which works as an intermediate format in the background instead of based on the actual line numbering of the
+  input markdown file, which makes it difficult to find the problem's root.
+  As you might have guessed, gh-md-to-html couldn't care less about the amount of whitespace you start your formulas
+  with, leaving the decision up to you.
+* pandoc supports multiple markdown flavors. The sole inline-formula-supporting one of those is pandoc-flavored
+  markdown, which comes with some quite specific requirements regarding the amount of trailing
+  whitespace before a sub-list in a nested list, and other requirements to create multi-line bullet point entries.
+  These requirements are not fulfilled my many markdown-editors (such as MarkText) and not required by many other
+  markdown flavors, causing pandoc to not render multiline bullet point entries and nestled lists correctly in many
+  cases.
+  gh-md-to-html, on the other hand, supports **both** nested lists like you would expect it, **and** formulas, releasing
+  the burden of having to edit entire markdown files to make then work with pandoc's md-to-html-conversion from your
+  shoulders.
+
+To sum it up, pandoc's md-to-pdf-conversion acts quite unusual when it comes to images, nested lists, multiline bullet
+point entries, or formulas, and gh-md-to-html does not.
 
 ## Installation
 
@@ -203,8 +216,8 @@ I also did the following demonstrations for automated image downloading, who whe
 repository and that instructions on how to run them can be found within the test files themselves. Also note that the test not only shows that images are stored
 and embedded correctly, but also that images from different files using the same name stored within the same image directory don't overwrite each other.):
 
-| input file:                                                                               | output file:                                                                              | demonstrates:
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- 
+| input file:                                                                                    | output file:                                                                              | demonstrates:
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- 
 | [here](https://phseiff.com/github-flavored-markdown-to-html/docs/image_test_from_file.md)      | [here](https://phseiff.com/github-flavored-markdown-to-html/docs/image_test_from_file.html)    | loading markdown from a file, which contains images from the web as well as absolute and relative file paths.
 | [here](https://phseiff.com/github-flavored-markdown-to-html/docs/image_test_from_string.md)    | [here](https://phseiff.com/github-flavored-markdown-to-html/docs/image_test_from_string.html)  | loading markdown from a string, which contains images from the web as well as absolute and relative file paths.
 | [here](https://phseiff.com/github-flavored-markdown-to-html/docs/image_test_from_web.md)       | [here](https://phseiff.com/github-flavored-markdown-to-html/docs/image_test_from_web.html)     | loading markdown from an url, which contains images from the web as well as absolute and relative relative paths.
@@ -220,6 +233,11 @@ In case you are not happy with the margin left and right of the text, you can ma
 An other thing to note is that, even though gh-md-to-html supports multi line formulas, you may still use one (one!) dollar sign per line without it triggering a formula, since every
 formula requires two of these. However, if you use two single dollar signs in two different columns of the same row off a table, your table will break. In the end, you are always better
 off properly escaping dollar signs, even though we give you the freedom not to do so on one occasion per line!
+
+When embedding images from disk (not via an url), you should ensure that the path you load the image from does not
+contain whitespaces. Otherwise, the markdown code to embed the image will be shown like any other text within the
+resulting html/pdf instead of being replaced with an image. I will eventually get to change this; if you want this to
+be done ASAP, feel free to drop a comment under the corresponding issue, and I will get to work on it for you ASAP :)
 
 ----
 
