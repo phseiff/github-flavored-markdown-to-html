@@ -412,6 +412,7 @@ https://pypi.org/project/pdfkit/""")
         absolute_relative_links = [link[1:] for link in links_in_general if link.startswith("/")]
         relative_links = [link for link in links_in_general if not link.startswith("/")]
         links = absolute_relative_links + relative_links
+        links = filter(lambda link: not (link.startswith("https://") or link.startswith("http://")), links)
 
         for link in links:
             abs_path = os.path.join(os.getcwd(), abs_website_root.lstrip("/"), link)
