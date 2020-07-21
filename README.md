@@ -1,11 +1,16 @@
 # github-flavored-markdown-to-html
 
 [![HitCount](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html.svg)](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html)
+[![PyPI download total](https://img.shields.io/pypi/dt/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
+[![GitHub license](https://img.shields.io/github/license/phseiff/github-flavored-markdown-to-html.js.svg)](https://github.com/phseiff/github-flavored-markdown-to-html.js/blob/master/LICENSE)
+[![Only 32 Kb](https://badge-size.herokuapp.com/phseiff/github-flavored-markdown-to-html.js/master/strapdown.min.js)](https://github.com/phseiff/github-flavored-markdown-to-html.js/blob/master/strapdown.min.js)
 
 Convert Markdown to html via python or with a command line interface. Uses [Githubs online
 Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) as well as
 [Githubs Markdown-CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css).
-Requires internet connection to work.
+Requires an active internet connection to work.
 
 This module is intended to be used for the creation of
 static pages from markdown files, for example in conjunction with a static website builder
@@ -30,6 +35,7 @@ Advantages include:
   [Darkreader](https://github.com/darkreader/darkreader) (the
   .js-module, not nessesarily the browser extension. This means that formulas are displayed
   with a light text when in darkmode, amongst other things).
+* Supports umlauts and other non-ascii-characters in plain text as well as multiline code blocks.
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
