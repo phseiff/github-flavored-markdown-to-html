@@ -1,5 +1,7 @@
 # github-flavored-markdown-to-html
 
+[![HitCount](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html.svg)](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html)
+
 Convert Markdown to html via python or with a command line interface. Uses [Githubs online
 Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) as well as
 [Githubs Markdown-CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css).
@@ -223,7 +225,8 @@ and embedded correctly, but also that images from different files using the same
 
 I also added a $formula$ here ($\sum_{i\ge e^2}^{7.3}\frac{4}{5}$) to demonstrate the formula rendering (which you won't see when viewing this README directly on github since, like I said, github usually doesn't support it.)
 
-A directory listing of the four example outputs can be found [here](https://phseiff.com/github-flavored-markdown-to-html/docs).
+A directory listing of these example outputs- and inputs can be found
+[here](https://phseiff.com/github-flavored-markdown-to-html/docs).
 
 ## Some Notes
 

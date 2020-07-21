@@ -134,7 +134,7 @@ def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_cha
         if DEBUG:
             print(" ---    FORMULA:", formula, " --- quoted:", quote(formula), " --- url:",
                   "https://latex.codecogs.com/svg.latex?" + quote(formula), " --- svg-paths:", svg_path_ids)
-        formula_rendered = formula_rendered.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[1]
+        formula_rendered = formula_rendered.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[-1]
         formula_rendered = formula_rendered.replace('<svg', '<svg style="vertical-align: middle"')
         formula_rendered = formula_rendered.replace('<path', '<path class="formula"')
         html_text = html_text.replace(
