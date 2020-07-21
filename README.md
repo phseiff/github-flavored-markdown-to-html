@@ -6,7 +6,7 @@
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
 [![GitHub license](https://img.shields.io/github/license/phseiff/github-flavored-markdown-to-html.svg)](https://github.com/phseiff/github-flavored-markdown-to-html/blob/master/LICENSE.txt)
 
-Convert Markdown to html via python or with a command line interface. Uses [Githubs online
+Convert Markdown to html via python or with a command line interface. Uses [GitHubs online
 Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) as well as
 [Githubs Markdown-CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css).
 Requires an active internet connection to work.
