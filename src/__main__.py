@@ -169,7 +169,7 @@ def str2bool(v):
 
 
 def main(md_origin, origin_type="file", website_root=None, destination=None, image_paths=None, css_paths=None,
-         output_name="<name>.html", output_pdf=None, style_pdf=True, footer=None, math=True,
+         output_name="<name>.html", output_pdf=None, style_pdf="True", footer=None, math="True",
          formulas_supporting_darkreader=False):
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
@@ -332,7 +332,7 @@ the case when inputting strings.""")
                     location = md_origin.rsplit(os.sep, 1)[0]
                     if not os.path.isabs(location):
                         location = os.path.join(os.getcwd(), location)
-                elif origin_type == "string":
+                else:  # elif origin_type == "string":
                     location = os.getcwd()
                 # check if we have an absolute or a non-absolute path
                 if os.path.isabs(image_src):
@@ -452,6 +452,7 @@ https://pypi.org/project/pdfkit/""")
         # return the result
         return html_rendered
 
+
 # Setting the doc string for the main function:
 
 
@@ -469,12 +470,15 @@ if __name__ == "__main__":
         description='Convert markdown to HTML using the GitHub API and some additional tweaks with python.',
     )
 
+
     class FuseInputString(argparse.Action):
         """Ugly workaround because argparse seems to not take input with spaces just as it is (as long as it is
         properly quoted in the shell and passed to sys.argv as a whole), but instead fuses all elements of sys.argv
         and parses them afterwords 🙄"""
+
         def __call__(self, p, namespace, values, option_string=""):
             setattr(namespace, self.dest, " ".join(values))
+
 
     parser.add_argument('md_origin', nargs="+", metavar='MD-origin', action=FuseInputString,
                         help='Where to find the markdown file that should be converted to html')
@@ -547,28 +551,30 @@ if __name__ == "__main__":
     # change help text
     help_text = parser.format_help()
     help_text_lines = help_text.split("\n")
-    l = -1
-    while l < len(help_text_lines) - 1:
-        l += 1
-        if "* " in help_text_lines[l]:
-            left, right = help_text_lines[l].split("* ", 1)
+    line_number = -1
+    while line_number < len(help_text_lines) - 1:
+        line_number += 1
+        if "* " in help_text_lines[line_number]:
+            left, right = help_text_lines[line_number].split("* ", 1)
             if left != "                        ":
-                help_text_lines.insert(l + 1, "                        * " + right)
-                help_text_lines[l] = left
-        if l < len(help_text_lines) - 1 and help_text_lines[l].startswith("                        "):
-            if (help_text_lines[l + 1].startswith("                        ")
-                    and not help_text_lines[l + 1].startswith("                        * ")):
-                text_next_line = help_text_lines[l + 1].split("                        ")[1].split(" ")
-                while 80 - len(help_text_lines[l]) > len(text_next_line[0]):
-                    text_this_line = help_text_lines[l].split(" ")
+                help_text_lines.insert(line_number + 1, "                        * " + right)
+                help_text_lines[line_number] = left
+        if line_number < len(help_text_lines) - 1 and help_text_lines[line_number].startswith(
+                "                        "):
+            if (help_text_lines[line_number + 1].startswith("                        ")
+                    and not help_text_lines[line_number + 1].startswith("                        * ")):
+                text_next_line = help_text_lines[line_number + 1].split("                        ")[1].split(" ")
+                while 80 - len(help_text_lines[line_number]) > len(text_next_line[0]):
+                    text_this_line = help_text_lines[line_number].split(" ")
                     text_this_line.append(text_next_line.pop(0))
-                    help_text_lines[l] = " ".join(text_this_line)
-                    help_text_lines[l + 1] = "                        " + " ".join(text_next_line)
-                    if not help_text_lines[l + 1].strip():
-                        del help_text_lines[l + 1]
-                    if (help_text_lines[l + 1].startswith("                        ")
-                            and not help_text_lines[l + 1].startswith("                        * ")):
-                        text_next_line = help_text_lines[l + 1].split("                        ")[1].split(" ")
+                    help_text_lines[line_number] = " ".join(text_this_line)
+                    help_text_lines[line_number + 1] = "                        " + " ".join(text_next_line)
+                    if not help_text_lines[line_number + 1].strip():
+                        del help_text_lines[line_number + 1]
+                    if (help_text_lines[line_number + 1].startswith("                        ")
+                            and not help_text_lines[line_number + 1].startswith("                        * ")):
+                        text_next_line = help_text_lines[line_number + 1].split(
+                            "                        ")[1].split(" ")
                     else:
                         break
     help_text = "\n".join(help_text_lines)
@@ -587,6 +593,9 @@ if __name__ == "__main__":
     # pass these inputs to the main-function, and raise an explanation should an error occur:
     try:
         result = main(**vars(parser.parse_args()))
+        # print the result if we are in print-mode:
+        if parser.parse_args().output_name == "print":
+            print(result)
     except FileNotFoundError:
         traceback.print_exc()
         print("\nAn Error occurred because a file required for the conversion could not be found.\n\
@@ -599,8 +608,3 @@ have deleted autogenerated files during the convertion process.")
 no internet, or you the page used to render the formulas or github is down, or because an image-link within your\n\
 input markdown directs to a non-accessible page.")
         os._exit(1)
-
-    finally:
-        # print the result if we are in print-mode:
-        if parser.parse_args().output_name == "print":
-            print(result)
