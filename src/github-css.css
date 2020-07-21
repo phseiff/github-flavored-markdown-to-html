@@ -262,7 +262,8 @@
 }
 
 .gist .markdown-body table tr:nth-child(2n) {
-	background-color: #f6f8fa
+	background-color: #f6f8fa  /* ToDo: maybe change this or the bg color of code blocks since they are currently
+	                               identical. */
 }
 
 .gist .markdown-body table img {
