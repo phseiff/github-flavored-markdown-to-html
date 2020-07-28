@@ -244,7 +244,15 @@ off properly escaping dollar signs, even though we give you the freedom not to d
 When embedding images from disk (not via an url), you should ensure that the path you load the image from does not
 contain whitespaces. Otherwise, the markdown code to embed the image will be shown like any other text within the
 resulting html/pdf instead of being replaced with an image. I will eventually get to change this; if you want this to
-be done ASAP, feel free to drop a comment under the corresponding issue, and I will get to work on it for you ASAP :)
+be done ASAP, feel free to drop a comment under the corresponding issue, and I will get to work on it ASAP.
+
+## Known Usages
+
+This tool is already used by
+
+* [myself](https://github.com/phseiff) (for homework assignments in pdf-format four times a week, so you can rest assured that yes, the person
+  maintaining it is also using it themselves)
+* feel free to drop an issue if you want to be included in this list!
 
 ----
 
