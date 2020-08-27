@@ -79,8 +79,12 @@ pip3 install .
 
 to clone from master and add changes before installing.
 
-Both might require `sudo` on Linux, and you can optionally do `python3 -m pip install pdfkit` (if you
-want to use the optional pdf features) to include pdf support into your installation.
+Both might require `sudo` on Linux, and you can optionally do
+```
+sudo apt-get install wkhtmltopdf
+python3 -m pip install pdfkit
+```
+(if you want to use the optional pdf features) to include pdf support into your installation.
 
 ## Usage
 
