@@ -4,6 +4,8 @@
 name: Upload Python Package
 
 on:
+  repository_dispatch:
+    types: [push-to-pypi]
   release:
     types: [created, prereleased]
 
