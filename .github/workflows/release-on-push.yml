@@ -23,7 +23,7 @@ jobs:
             This release was automatically triggered by a push event. It is not intended for download. Instead, install gh-md-to-html from Pypi.
           draft: false
           prerelease: true
- .
+        
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v1
         with:
