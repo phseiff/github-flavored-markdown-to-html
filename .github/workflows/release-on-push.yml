@@ -16,8 +16,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v0.0.${{ github.ref }}
-          release_name: Technical test-release no. ${{ github.ref }}
+          tag_name: v0.0.${{ github.GITHUB_SHA }}
+          release_name: Technical test-release no. ${{ github.GITHUB_SHA }}
           body: |
             This release was automatically triggered by a push event. It is not intended for download. Instead, install gh-md-to-html from Pypi.
           draft: false
