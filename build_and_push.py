@@ -15,3 +15,5 @@ for command in [
 ]:
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
+    if command.startswith("gh-md-to-html"):
+        print("{" + str(output, encoding="UTF-8") + "}")
