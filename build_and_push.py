@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 for command in [
-    "sudo pip3 uninstall -y gh-md-to-html",
+    "sudo python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 setup.py install",
     "gh-md-to-html --help",
     "git add *",
