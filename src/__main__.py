@@ -591,7 +591,7 @@ if __name__ == "__main__":
 
     # Print help text if requested.
     if "-h" in sys.argv or "--help" in sys.argv:
-        print(HELP)
+        print(help_text)
         sys.exit()
 
     # pass these inputs to the main-function, and raise an explanation should an error occur:
