@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 for command in [
-    "sudo python3 uninstall gh-md-to-html",
+    "sudo pip3 uninstall -y gh-md-to-html",
     "sudo python3 setup.py install",
     "gh-md-to-html --help",
     "git add *",
@@ -22,4 +22,3 @@ for command in [
             with open("README-raw.md", "r") as raw_readme_file:
                 with open("README.md", "w") as readme_file:
                     readme_file.write(raw_readme_file.read().replace("{help}", str(output, encoding="UTF-8")))
-        print("{" + str(output, encoding="UTF-8") + "}")
