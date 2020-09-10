@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 for command in [
+    "python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 setup.py install",
     "gh-md-to-html --help",
@@ -14,6 +15,7 @@ for command in [
     "git commit -m '" + sys.argv[1] + "'",
     "git push",
 ]:
+    print("command:", command)
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     if command.startswith("gh-md-to-html"):
