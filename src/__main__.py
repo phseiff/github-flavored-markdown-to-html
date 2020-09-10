@@ -251,7 +251,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     # fill everything into our template, to link the html to the .css-file etc.:
     with open_local("prototype.html", "r") as f:
         possible_id_for_essay = (
-            (output_name.split("/")[-1].split(os.sep)[-1].split(".")[0] if output_name not in ("print", "<name>")
+            (output_name.split("/")[-1].split(os.sep)[-1].split(".")[0] if output_name not in ("print", "<name>.html")
              else (md_origin.split("/")[-1].split(os.sep)[-1].rsplit(".")[0] if origin_type != "string"
                    else (extra_css.split("/")[-1].split(os.sep)[-1].split(".")[0] if extra_css else "")))
         )
