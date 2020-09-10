@@ -19,6 +19,7 @@ for command in [
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     if command.startswith("gh-md-to-html"):
+        print("help text:", str(output, encoding="UTF-8"))
         with open("src/help.txt", "wb") as help_text_file:
             help_text_file.write(output)
             with open("README-raw.md", "r") as raw_readme_file:
