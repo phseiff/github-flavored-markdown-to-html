@@ -206,7 +206,18 @@ optional arguments:
   -x EXTRA_CSS [EXTRA_CSS ...], --extra-css EXTRA_CSS [EXTRA_CSS ...]
                         A path to a file containing additional css to embed into
                         the final html, as an absolute path or relative to the
-                        working directory.
+                        working directory. This file should contain css between
+                        two <style>-tags, so it is actually a html file, and can
+                        contain javascript as well. It's worth mentioning and
+                        might be useful for your css/js that every element of
+                        the generated html is a child element of an element with
+                        id xxx, where xxx is "article-" plus the filename
+                        (without extension) of: 
+                        * output- name, if output-name is not "print".
+                        * the input markdown file, if output-name is "print",
+                        and the input type is not string.
+                        * the file with the extra- css otherwise. If none of
+                        these cases applies, no id is given.
 
 
 ```
