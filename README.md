@@ -213,11 +213,12 @@ optional arguments:
                         the generated html is a child element of an element with
                         id xxx, where xxx is "article-" plus the filename
                         (without extension) of: 
-                        * output- name, if output-name is not "print".
-                        * the input markdown file, if output-name is "print",
-                        and the input type is not string.
-                        * the file with the extra- css otherwise. If none of
-                        these cases applies, no id is given.
+                        * output- name, if output-name is not "print" and not
+                        the default value.
+                        * the input markdown file, if output- name is "print",
+                        and the input type is not string. * the file with the
+                        extra-css otherwise. If none of these cases applies, no
+                        id is given.
 
 
 ```
