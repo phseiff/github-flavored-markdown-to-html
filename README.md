@@ -117,6 +117,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-p OUTPUT_PDF [OUTPUT_PDF ...]] [-s STYLE_PDF]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
                    [-r FORMULAS_SUPPORTING_DARKREADER]
+                   [-x EXTRA_CSS [EXTRA_CSS ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -202,11 +203,10 @@ optional arguments:
                         look for. Please note that this won't have any effect
                         unless you inject the darkreader .js library into the
                         generated html; doing so is not included in this module.
-
-
-
-
-
+  -x EXTRA_CSS [EXTRA_CSS ...], --extra-css EXTRA_CSS [EXTRA_CSS ...]
+                        A path to a file containing additional css to embed into
+                        the final html, as an absolute path or relative to the
+                        working directory.
 
 
 ```
