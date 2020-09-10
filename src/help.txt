@@ -92,3 +92,4 @@ optional arguments:
                         look for. Please note that this won't have any effect
                         unless you inject the darkreader .js library into the
                         generated html; doing so is not included in this module.
+
