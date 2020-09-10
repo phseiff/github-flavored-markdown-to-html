@@ -251,7 +251,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     # fill everything into our template, to link the html to the .css-file etc.:
     with open_local("prototype.html", "r") as f:
         possible_id_for_essay = (
-            (output_name.split("/")[-1].split(os.sep)[-1].split(".")[0] if output_name != "print"
+            (output_name.split("/")[-1].split(os.sep)[-1].split(".")[0] if output_name not in ("print", "<name>")
              else (md_origin.split("/")[-1].split(os.sep)[-1].rsplit(".")[0] if origin_type != "string"
                    else (extra_css.split("/")[-1].split(os.sep)[-1].split(".")[0] if extra_css else "")))
         )
@@ -561,7 +561,7 @@ if __name__ == "__main__":
     contain javascript as well. It's worth mentioning and might be useful for your css/js that every element of the
     generated html is a child element of an element with id xxx, where xxx is "article-" plus the filename (without
     extension) of:
-    * output-name, if output-name is not "print".
+    * output-name, if output-name is not "print" and not the default value.
     * the input markdown file, if output-name is "print", and the input type is not string.
     * the file with the extra-css otherwise.
     If none of these cases applies, no id is given.""")
