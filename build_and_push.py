@@ -12,11 +12,11 @@ for command in [
     "sudo python3 setup.py install",
     "gh-md-to-html --help",
     "git add *",
-    "git commit -m '" + sys.argv[1] + "'",
+    "git commit -m \"" + sys.argv[1] + "\"",
     "git push",
 ]:
     print("command:", command)
-    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     output, error = process.communicate()
     if command.startswith("gh-md-to-html"):
         print("help text:", str(output, encoding="UTF-8"))
