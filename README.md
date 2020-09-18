@@ -7,23 +7,25 @@
 [![GitHub license](https://img.shields.io/github/license/phseiff/github-flavored-markdown-to-html.svg)](https://github.com/phseiff/github-flavored-markdown-to-html/blob/master/LICENSE.txt)
 <!-- ![Health measured by landscape.io](https://landscape.io/github/phseiff/github-flavored-markdown-to-html/master/landscape.png) -->
 
-Convert Markdown to html via python or with a command line interface. Uses [GitHubs online
-Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) as well as
-[GitHubs Markdown-CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css).
-Requires an active internet connection to work.
+A user-friendly python-module and command-line frontend to convert markdown to html. It uses
+[GitHubs online Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) by default (which requires
+internet connection), but any other python- or commandline tool can be plugged into it as well, and whatever you use it
+with is extended with a ton of functionality, more in- and output options,
+[github-flavored CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css), formula
+support, image downloading, host-ready file- and image-placement, and more.
 
-This module is intended to be used for the creation of
-static pages from markdown files, for example in conjunction with a static website builder
-or github actions if you host on Github, but can be very well used for any other purpose.
-It also allows you to convert the html files to pdf on the fly.
+Whilst its main purpose is the creation of static pages from markdown files, for example in conjunction with a static
+website builder or github actions if you host on Github, it can be very well used for any other purpose.
+It also allows you to convert the resulting html files to pdf on the fly.
 
 Advantages include:
 
 * Lets you specify the markdown to convert as a string, as a repository path, as a local
   file name or as a hyperlink.
 * Pulls any images referenced in the markdown files from the web/ your local storage and
-  places them in a directory relative to your website root, so you can host it all locally
-  without relying on third-party-websites.
+  places them in a directory relative to your website root, so the resulting file structure is host-ready for static
+  sites. Multiple arguments allow the customization of the saving locations, but the images will always be referenced
+  correctly in the resulting html files.
 * Creates all links as root-relative hyperlinks and lets you specify the root directory
   as well as the locations for css and images, but uses smart standard values for
   everything.
@@ -35,7 +37,10 @@ Advantages include:
   [Darkreader](https://github.com/darkreader/darkreader) (the
   .js-module, not nessesarily the browser extension. This means that formulas are displayed
   with a light text when in darkmode, amongst other things).
-* Supports umlauts and other non-ascii-characters in plain text as well as multiline code blocks.
+* Supports umlauts and other non-ascii-characters in plain text as well as multiline code blocks, which the github rest
+  api usually doesn't.
+* Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
+* Styles its output with github's README-html (which can be turned off).
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
@@ -118,6 +123,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
                    [-r FORMULAS_SUPPORTING_DARKREADER]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
+                   [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -219,6 +225,19 @@ optional arguments:
                         and the input type is not string. * the file with the
                         extra-css otherwise. If none of these cases applies, no
                         id is given.
+  -o CORE_CONVERTER [CORE_CONVERTER ...], --core-converter CORE_CONVERTER [CORE_CONVERTER ...]
+                        The converter to use to convert the given markdown to
+                        html, before additional modifications such as formula
+                        support and image downloading are applied; this can be
+                        * on Unix/ any system with a cmd: a command containing
+                        the string "{md}", where "{md}" will be replaced with an
+                        escaped version of the markdown file's content, and
+                        which returns the finished html. Please note that
+                        commands for Unix-system won't work on Windows systems,
+                        and vice versa etc. 
+                        * when using gh-md-to- html in python: A callable which
+                        converts markdown to html, or a string as described
+                        above.
 
 
 ```

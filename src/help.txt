@@ -8,6 +8,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
                    [-r FORMULAS_SUPPORTING_DARKREADER]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
+                   [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -109,4 +110,17 @@ optional arguments:
                         and the input type is not string. * the file with the
                         extra-css otherwise. If none of these cases applies, no
                         id is given.
+  -o CORE_CONVERTER [CORE_CONVERTER ...], --core-converter CORE_CONVERTER [CORE_CONVERTER ...]
+                        The converter to use to convert the given markdown to
+                        html, before additional modifications such as formula
+                        support and image downloading are applied; this can be
+                        * on Unix/ any system with a cmd: a command containing
+                        the string "{md}", where "{md}" will be replaced with an
+                        escaped version of the markdown file's content, and
+                        which returns the finished html. Please note that
+                        commands for Unix-system won't work on Windows systems,
+                        and vice versa etc. 
+                        * when using gh-md-to- html in python: A callable which
+                        converts markdown to html, or a string as described
+                        above.
 
