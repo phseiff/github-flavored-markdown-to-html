@@ -587,7 +587,7 @@ if __name__ == "__main__":
     * the file with the extra-css otherwise.
     If none of these cases applies, no id is given.""")
 
-    parser.add_argument('-o', '--core-converter', nargs="+", help="""
+    parser.add_argument('-o', '--core-converter', nargs="+", default=markdown_to_html_via_github_api, help="""
     The converter to use to convert the given markdown to html, before additional modifications such as formula support
     and image downloading are applied; this can be
     * on Unix/ any system with a cmd: a command containing the string "{md}", where "{md}" will be replaced with an
