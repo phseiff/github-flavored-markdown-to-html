@@ -463,7 +463,7 @@ https://pypi.org/project/pdfkit/""")
         if "<name>" in output_pdf and origin_type == "string":
             raise Exception("You can't use <name> in your pdf name if you enter the input with the '-t string option'.")
         else:
-            output_pdf.replace("<name>", file_name_origin)
+            output_pdf = output_pdf.replace("<name>", file_name_origin)
 
         # Finally convert it:
         # (this saving and then converting ensures we don't convert links like https:foo to
