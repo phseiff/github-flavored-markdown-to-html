@@ -1,6 +1,6 @@
 """
 This updated help.txt (the help text shown by the program), updates README-md to include said help text, commits and
-pushes everything.
+pushes everything. Call with sudo!
 """
 
 import subprocess
