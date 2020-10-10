@@ -407,7 +407,7 @@ the case when inputting strings.""")
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
 
     # ensure we have the css where we want it to be:
-    with open_local("github-css.css", "r") as from_f:
+    with open_local("github-css.min.css", "r") as from_f:
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
             to_f.write(from_f.read())
 
