@@ -5,9 +5,11 @@ pushes everything. Call with sudo!
 
 import subprocess
 import sys
+from css_html_js_minify import process_single_css_file
+
+process_single_css_file("src/github-css.css")
 
 for command in [
-    "css-html-js-minify.py src/github-css.css",
     "python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 setup.py install",
