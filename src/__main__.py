@@ -477,8 +477,8 @@ https://pypi.org/project/pdfkit/""")
         )
         os.remove(os.path.join(abs_destination, output_name + ".html"))
 
-        # return the result
-        return html_rendered
+    # return the result
+    return html_rendered
 
 
 # Setting the doc string for the main function:
