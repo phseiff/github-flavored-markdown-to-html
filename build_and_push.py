@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 for command in [
+    "css-html-js-minify.py src/github-css.css",
     "python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 setup.py install",

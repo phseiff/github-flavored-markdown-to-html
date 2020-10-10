@@ -9,38 +9,37 @@
 
 A user-friendly python-module and command-line frontend to convert markdown to html. It uses
 [GitHubs online Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) by default (which requires
-internet connection), but any other python- or commandline tool can be plugged into it as well, and whatever you use it
-with is extended with a ton of functionality, more in- and output options,
+internet connection), but any other python- or commandline tool can be plugged into it as well. Whatever you use it
+with is automatically extended with a ton of functionality, like more in- and output options,
 [github-flavored CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css), formula
-support, image downloading, host-ready file- and image-placement, and more.
+support, image downloading, host-ready file- and image-placement, pdf-conversion, and more.
 
 Whilst its main purpose is the creation of static pages from markdown files, for example in conjunction with a static
-website builder or github actions if you host on Github, it can be very well used for any other purpose.
-It also allows you to convert the resulting html files to pdf on the fly.
+website builder or github actions if you host on Github, it can be very well-used for any other purpose.
 
 Advantages include:
 
 * Lets you specify the markdown to convert as a string, as a repository path, as a local
   file name or as a hyperlink.
 * Pulls any images referenced in the markdown files from the web/ your local storage and
-  places them in a directory relative to your website root, so the resulting file structure is host-ready for static
-  sites. Multiple arguments allow the customization of the saving locations, but the images will always be referenced
-  correctly in the resulting html files.
+  places them in a directory relative to your specified website root, so the resulting file structure is host-ready for
+  static sites. Multiple arguments allow the customization of the saving locations, but the images will always be
+  referenced correctly in the resulting html files.
 * Creates all links as root-relative hyperlinks and lets you specify the root directory
   as well as the locations for css and images, but uses smart standard values for
   everything.
 * Supports inline LaTeX-formulas (use `$`-formula-`$` to use them), which GitHub usually
   doesn't (this is done using the [Codecogs EqnEditor](https://latex.codecogs.com/)).
-* Supports exporting as pdf with or without Github styling, using the
+* Supports exporting to pdf with or without Github styling, using the
   [pdfkit](https://pypi.org/project/pdfkit/) python module (if it is installed).
 * Tested and optimized to look good when using
   [Darkreader](https://github.com/darkreader/darkreader) (the
-  .js-module, not nessesarily the browser extension. This means that formulas are displayed
+  .js-module, not necessarily the browser extension. This means that formulas are displayed
   with a light text when in darkmode, amongst other things).
-* Supports umlauts and other non-ascii-characters in plain text as well as multiline code blocks, which the github rest
+* Supports umlauts and other non-ascii-characters in plain text as well as multiline code blocks, which the github REST
   api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
-* Styles its output with github's README-html (which can be turned off).
+* Styles its output with github's README-css (can be turned off).
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
