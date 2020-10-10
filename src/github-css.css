@@ -1377,6 +1377,9 @@
 	font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace!important;
 	white-space: pre
 }
+.gist code {
+	word-wrap: normal;
+}
 
 .gist .gist-meta {
 	padding: 10px;
