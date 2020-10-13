@@ -439,7 +439,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         # ^Iterate over all images referenced in the markdown file
         image_src = original_markdown_image_src = img_soup_representation.get("src")
         if image_src == "":
-            pass  # <-- In case some images with no source where injected for some reason
+            continue  # <-- In case some images with no source where injected for some reason
         save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
         save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
         save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
