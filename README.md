@@ -129,7 +129,8 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
                    [-r FORMULAS_SUPPORTING_DARKREADER]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
-                   [-o CORE_CONVERTER [CORE_CONVERTER ...]] [-e E [E ...]]
+                   [-o CORE_CONVERTER [CORE_CONVERTER ...]]
+                   [-e COMPRESS_IMAGES [COMPRESS_IMAGES ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -244,7 +245,7 @@ optional arguments:
                         * when using gh-md-to- html in python: A callable which
                         converts markdown to html, or a string as described
                         above.
-  -e E [E ...], -compress-images E [E ...]
+  -e COMPRESS_IMAGES [COMPRESS_IMAGES ...], --compress-images COMPRESS_IMAGES [COMPRESS_IMAGES ...]
                         Reduces load time of the generated html by saving all
                         images referenced by the given markdown file as jpeg.
                         This argument takes a piece of json data containing the
