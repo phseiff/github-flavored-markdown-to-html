@@ -212,7 +212,7 @@
 }
 
 .gist .markdown-body li {
-	word-wrap: break-all
+	word-wrap: break-all;
 }
 
 .gist .markdown-body li>p {
@@ -1375,10 +1375,6 @@
 .gist code,
 .gist pre {
 	font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace!important;
-	white-space: pre
-}
-.gist code {
-	word-wrap: normal;
 }
 
 .gist .gist-meta {

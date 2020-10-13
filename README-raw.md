@@ -40,6 +40,13 @@ Advantages include:
   api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
+* Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
+  original images) with a specified background color (default is white) for converting RGB to RGBA, and a specified
+  compression rate (default is 90). Images with a specified width or height attribute in pixels get scaled down to that
+  size to reduce loading time. This helps severely reduce the size of generated pages for markdown files with lots of
+  images. There is also an option to save all images in multiple sizes and let the html viewer (/browser) pick the one
+  fitting for the viewport size (with srcset), thus making gh-md-to-html the only md-to-html converter with srcset
+  support I know of.
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
