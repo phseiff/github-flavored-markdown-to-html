@@ -728,7 +728,7 @@ if __name__ == "__main__":
     * when using gh-md-to-html in python: A callable which converts markdown to html, or a string as described above.
     """)
 
-    parser.add_argument('-e', '-compress-images', nargs="+", help="""
+    parser.add_argument('-e', '--compress-images', nargs="+", help="""
     Reduces load time of the generated html by saving all images referenced by the given markdown file as jpeg. This
     argument takes a piece of json data containing the following information; if it is not used, no compression is done:
     * bg-color: the color to use as a background color when converting RGBA-images to jpeg (an RGB-format). Defaults to
