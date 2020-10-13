@@ -14,6 +14,10 @@ from io import BytesIO
 from urllib.parse import quote
 import traceback
 import subprocess
+import json
+import webcolors
+from ast import literal_eval as make_tuple
+from bs4 import BeautifulSoup
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
@@ -157,8 +161,12 @@ def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_cha
 
 def str2bool(v):
     """Convert a string taken as a confirmation or objection to a bool."""
+    if type(v) not in (bool, str, int):
+        raise argparse.ArgumentTypeError('Boolean value expected.')
     if isinstance(v, bool):
         return v
+    if v in (0, 1):
+        return bool(v)
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -176,15 +184,133 @@ def markdown_to_html_via_github_api(markdown):
     )
 
 
+def compress_images_input_to_dict(compress_images) -> dict:
+    """Parse the input of the compress-images-parameter to a python dict (empty if we should not do compression at all)
+    according to the specification in the help text.
+
+    --------
+    Doctests:
+    --------
+
+    Entering Bools for True:
+
+    >>> compress_images_input_to_dict("False")
+    {}
+
+    >>> compress_images_input_to_dict(False)
+    {}
+
+    Entering Bools for True:
+
+    >>> compress_images_input_to_dict("True") == {'bg-color': (255, 255, 255), 'progressive': False, 'srcset': False, 'quality': 90}
+    True
+
+    >>> compress_images_input_to_dict(True) == {'bg-color': (255, 255, 255), 'progressive': False, 'srcset': False, 'quality': 90}
+    True
+
+    Entering a dict (check if it is correctly extended with the omitted attributes, and no given ones are overwritten):
+
+    >>> compress_images_input_to_dict({'quality': 80}) == {'bg-color': (255, 255, 255), 'progressive': False, 'srcset': False, 'quality': 80}
+    True
+
+    Entering some json data (check if it is correctly converted to a dict, extended with the omitted attributes, and
+    no given ones are overwritten):
+
+    >>> compress_images_input_to_dict("{\\"quality\\": 80, \\"progressive\\": \\"yes\\"}") == {'bg-color': (255, 255, 255), 'progressive': True, 'srcset': False, 'quality': 80}
+    True
+
+    Setting the srcset-attribute to True and checking if the right default value is chosen:
+
+    >>> compress_images_input_to_dict("{\\"srcset\\": \\"y\\"}") == {'bg-color': (255, 255, 255), 'progressive': False, 'srcset': [500, 800, 1200, 1500, 1800, 2000], 'quality': 90}
+    True
+
+    Specify some sizes for srcset to ensure they aren't overwritten:
+
+    >>> compress_images_input_to_dict("{\\"srcset\\": [80]}") == {'bg-color': (255, 255, 255), 'progressive': False, 'srcset': [80], 'quality': 90}
+    True
+
+    """
+    # Return an empty dict if nothing was specified:
+    if not compress_images:
+        return dict()
+
+    # Define default dict to use when input is True:
+    default_dict = {
+        "bg-color": "white",
+        "progressive": "False",
+        "srcset": "False",
+        "quality": 90,
+    }
+    # Choose default dict if input is a True-string and return an empty dict if it is a False-string:
+    try:
+        if str2bool(compress_images) is True:
+            compress_images = json.dumps(default_dict)
+        elif str2bool(compress_images) is False:
+            return dict()
+    except argparse.ArgumentTypeError:
+        pass
+
+    # Convert the compression-info-dict to an actual dict:
+    try:
+        if type(compress_images) is dict:  # <-- Use the given input if its type is dict.
+            compression_information = compress_images
+        else:
+            compression_information = json.loads(compress_images)
+    except json.decoder.JSONDecodeError:
+        raise ValueError("Apparently, your compression information was not valid json data.")
+
+    # Fill in default values for all omitted fields:
+    for default_key, default_value in default_dict.items():
+        if default_key not in compression_information:
+            compression_information[default_key] = default_value
+
+    # Convert string descriptions of boolean values to actual boolean values:
+    for boolean_key in ("progressive", "srcset"):
+        try:
+            compression_information[boolean_key] = str2bool(compression_information[boolean_key])
+        except argparse.ArgumentTypeError:
+            if bool == "progressive":
+                raise argparse.ArgumentTypeError(
+                    "The 'progress'-value of the compress-images-input must be boolean!")
+
+    # Set the default for srcset if srcset is True:
+    if compression_information["srcset"] is True:
+        compression_information["srcset"] = [500, 800, 1200, 1500, 1800, 2000]
+
+    # Convert the color given to bg-color to a three-tuple:
+    compression_information["bg-color"] = compression_information["bg-color"].strip()  # <-- Remove whitespace
+    if compression_information["bg-color"].startswith("rgb"):
+        try:  # <-- rgb-tuple
+            compression_information["bg-color"] = make_tuple(compression_information["bg-color"].replace("rgb", ""))
+        except ValueError:
+            raise argparse.ArgumentTypeError("Invalid rgb tuple for compress-images->bg-color given.")
+    elif compression_information["bg-color"].startswith("#"):
+        try:  # <-- hex-color
+            compression_information["bg-color"] = webcolors.hex_to_rgb(compression_information["bg-color"])
+        except ValueError:
+            raise argparse.ArgumentTypeError("Invalid hex color value for compress-images->bg-color given.")
+    else:
+        try:  # <-- color name
+            compression_information["bg-color"] = webcolors.name_to_rgb(compression_information["bg-color"])
+        except ValueError:
+            raise argparse.ArgumentTypeError("Invalid color name for compress-images->bg-color given.")
+    # Convert the color tuple to a tuple:
+    compression_information["bg-color"] = tuple(compression_information["bg-color"])
+
+    # return the result:
+    return compression_information
+
 # The main function:
 
 
 def main(md_origin, origin_type="file", website_root=None, destination=None, image_paths=None, css_paths=None,
          output_name="<name>.html", output_pdf=None, style_pdf="True", footer=None, math="True",
-         formulas_supporting_darkreader=False, extra_css=None, core_converter=markdown_to_html_via_github_api):
+         formulas_supporting_darkreader=False, extra_css=None, core_converter=markdown_to_html_via_github_api,
+         compress_images=False):
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
+    compression_information = compress_images_input_to_dict(compress_images)
     if website_root is None:
         website_root = ""
     if destination is None:
@@ -296,10 +422,10 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         print("\n------------\nHtml rendered (with darkreader support):\n------------\n\n", html_rendered)
 
     # find the images referenced within the file:
-    images = [
-        str(image, encoding="UTF-8") for image in
-        re.compile(rb'<img [^>]*src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-    ]
+    # images = [
+    #     str(image, encoding="UTF-8") for image in
+    #     re.compile(rb'<img [^>]*src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
+    # ]
 
     # ensure we have all the images in the images path:
     saved_image_names = set(  # <-- defines which images we already have within our image directory
@@ -307,9 +433,11 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         for image_name in os.listdir(abs_image_paths)
         if os.path.isfile(os.path.join(abs_image_paths, image_name))
     )
-    for image_src in images:  # <-- Iterates over all images referenced in the markdown file
-        # print(image_src)
-        original_markdown_image_src = image_src
+
+    html_soup = BeautifulSoup(html_rendered, 'html.parser')
+    for img_soup_representation in html_soup.find_all("img"):
+        # ^Iterate over all images referenced in the markdown file
+        image_src = original_markdown_image_src = img_soup_representation.get("src")
         save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
         save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
         save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
@@ -327,8 +455,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             load_from_web = True
         else:
             if origin_type == "string":
-                # This is a security risk since web content might get one to embed local images from ones disk
-                # into ones website when automatically cloning .md-files found online.
+                # This is a security risk since web content might get one to embed local images from one's disk
+                # into one's website when automatically cloning .md-files found online.
                 input("""press enter if you are sure you trust that string. Remove this line if this is always
 the case when inputting strings.""")
 
@@ -390,18 +518,16 @@ the case when inputting strings.""")
         except AttributeError:
             with open(cached_image_path, "wb+") as f:
                 f.write(img_object)
-        # replace the link to the image with the link to the stored image:
-        # print("original_image:", original_image, ":")
-        # print("caged image path:", cached_image_path, ":")
-        # print("in:", original_image in html_rendered)
-        html_rendered = html_rendered.replace(
-            '<img src="' + original_markdown_image_src + '"',
-            '<img src="' + ("/" if website_root != "." else "") + image_paths + "/" + save_image_as + '"'
+
+        # change src/href tags to ensure we reference the right image
+        new_image_src = (
+                ("/" if website_root != "." else "") + image_paths + "/" + save_image_as
         )
-        html_rendered = html_rendered.replace(
-            '<a href="' + original_markdown_image_src + '"',
-            '<a href="' + ("/" if website_root != "." else "") + image_paths + "/" + save_image_as + '"'
-        )
+        img_soup_representation["src"] = new_image_src
+        if img_soup_representation.parent.name == "a":
+            img_soup_representation.parent.href = new_image_src
+
+    html_rendered = html_soup.__str__()
 
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
@@ -488,6 +614,12 @@ main.__doc__ = """\
 Use this function like the command line interface:
 --------------------------------------------------
 """ + HELP
+
+# Some doctests:
+
+def _test():
+    import doctest
+    doctest.testmod()
 
 # Reacting appropriately if code is called from command line interface:
 
@@ -594,6 +726,24 @@ if __name__ == "__main__":
       escaped version of the markdown file's content, and which returns the finished html. Please note that commands for
       Unix-system won't work on Windows systems, and vice versa etc.
     * when using gh-md-to-html in python: A callable which converts markdown to html, or a string as described above.
+    """)
+
+    parser.add_argument('-e', '-compress-images', nargs="+", help="""
+    Reduces load time of the generated html by saving all images referenced by the given markdown file as jpeg. This
+    argument takes a piece of json data containing the following information; if it is not used, no compression is done:
+    * bg-color: the color to use as a background color when converting RGBA-images to jpeg (an RGB-format). Defaults to
+      "white" and accepts almost any HTML5 color-value ("#FFFFFF", "#ffffff", "white" and "rgb(255, 255, 255)" would've
+      all been valid values).
+    * progressive: Save images as progressive jpegs. Default is False.
+    * srcset: Save differently scaled versions of the image and provide them to the image in its srcset attribute.
+      Defaults to False. Takes an array of different widths or True, which serves as a shortcut for
+      "[500, 800, 1200, 1500, 1800, 2000]". 
+    * quality: a value from 0 to 100 describing at which quality the images should be saved (this is done after they are
+      scaled down, if they are scaled down at all). Defaults to 90.
+    If a specific size is specified for a specific image in the html, the image is always converted to the right size.
+    If this argument is left empty, no compression is down at all. If this argument is set to True, all default values
+    are used. If it is set to json data and values are omitted, the defaults are also used. If a dict is passed instead
+    of json data (when using the tool as a python module), the dict is used as the result of the json data.
     """)
 
     # This hackish ensures the bullet points in the help text generated by argparse get formatted correctly.

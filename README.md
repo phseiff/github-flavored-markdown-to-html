@@ -40,6 +40,13 @@ Advantages include:
   api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
+* Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
+  original images) with a specified background color (default is white) for converting RGB to RGBA, and a specified
+  compression rate (default is 90). Images with a specified width or height attribute in pixels get scaled down to that
+  size to reduce loading time. This helps severely reduce the size of generated pages for markdown files with lots of
+  images. There is also an option to save all images in multiple sizes and let the html viewer (/browser) pick the one
+  fitting for the viewport size (with srcset), thus making gh-md-to-html the only md-to-html converter with srcset
+  support I know of.
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
@@ -122,7 +129,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
                    [-r FORMULAS_SUPPORTING_DARKREADER]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
-                   [-o CORE_CONVERTER [CORE_CONVERTER ...]]
+                   [-o CORE_CONVERTER [CORE_CONVERTER ...]] [-e E [E ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -237,6 +244,36 @@ optional arguments:
                         * when using gh-md-to- html in python: A callable which
                         converts markdown to html, or a string as described
                         above.
+  -e E [E ...], -compress-images E [E ...]
+                        Reduces load time of the generated html by saving all
+                        images referenced by the given markdown file as jpeg.
+                        This argument takes a piece of json data containing the
+                        following information; if it is not used, no compression
+                        is done: 
+                        * bg-color: the color to use as a background color when
+                        converting RGBA-images to jpeg (an RGB-format). Defaults
+                        to "white" and accepts almost any HTML5 color-value
+                        ("#FFFFFF", "#ffffff", "white" and "rgb(255, 255, 255)"
+                        would've all been valid values).
+                        * progressive: Save images as progressive jpegs. Default
+                        is False. 
+                        * srcset: Save differently scaled versions of the image
+                        and provide them to the image in its srcset attribute.
+                        Defaults to False. Takes an array of different widths or
+                        True, which serves as a shortcut for "[500, 800, 1200,
+                        1500, 1800, 2000]".
+                        * quality: a value from 0 to 100 describing at which
+                        quality the images should be saved (this is done after
+                        they are scaled down, if they are scaled down at all).
+                        Defaults to 90. If a specific size is specified for a
+                        specific image in the html, the image is always
+                        converted to the right size. If this argument is left
+                        empty, no compression is down at all. If this argument
+                        is set to True, all default values are used. If it is
+                        set to json data and values are omitted, the defaults
+                        are also used. If a dict is passed instead of json data
+                        (when using the tool as a python module), the dict is
+                        used as the result of the json data.
 
 
 ```
