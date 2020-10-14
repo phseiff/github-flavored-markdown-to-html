@@ -527,7 +527,8 @@ the case when inputting strings.""")
         )
         img_soup_representation["src"] = new_image_src
         img_soup_representation["data-canonical-src"] = new_image_src
-        if img_soup_representation.parent.name == "a":
+        if img_soup_representation.parent.name == "a"\
+                and img_soup_representation.parent["href"] == original_markdown_image_src:
             img_soup_representation.parent["href"] = new_image_src
 
     html_rendered = html_soup.__str__()
