@@ -801,7 +801,7 @@ if __name__ == "__main__":
     Please note that this won't have any effect unless you inject the darkreader .js library into the generated html;
     doing so is not included in this module.""")
 
-    parser.add_argument('-x', '--extra-css', nargs="+", help="""
+    parser.add_argument('-x', '--extra-css', nargs="+", action=FuseInputString, help="""
     A path to a file containing additional css to embed into the final html, as an absolute path or relative to the
     working directory. This file should contain css between two <style>-tags, so it is actually a html file, and can
     contain javascript as well. It's worth mentioning and might be useful for your css/js that every element of the
@@ -812,7 +812,8 @@ if __name__ == "__main__":
     * the file with the extra-css otherwise.
     If none of these cases applies, no id is given.""")
 
-    parser.add_argument('-o', '--core-converter', nargs="+", default=markdown_to_html_via_github_api, help="""
+    parser.add_argument('-o', '--core-converter', nargs="+", action=FuseInputString,
+                        default=markdown_to_html_via_github_api, help="""
     The converter to use to convert the given markdown to html, before additional modifications such as formula support
     and image downloading are applied; this can be
     * on Unix/ any system with a cmd: a command containing the string "{md}", where "{md}" will be replaced with an
@@ -821,7 +822,7 @@ if __name__ == "__main__":
     * when using gh-md-to-html in python: A callable which converts markdown to html, or a string as described above.
     """)
 
-    parser.add_argument('-e', '--compress-images', nargs="+", help="""
+    parser.add_argument('-e', '--compress-images', nargs="+", action=FuseInputString, help="""
     Reduces load time of the generated html by saving all images referenced by the given markdown file as jpeg. This
     argument takes a piece of json data containing the following information; if it is not used, no compression is done:
     * bg-color: the color to use as a background color when converting RGBA-images to jpeg (an RGB-format). Defaults to
