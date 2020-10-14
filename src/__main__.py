@@ -552,6 +552,10 @@ the case when inputting strings.""")
         else:
             img_object = Image.open(image_src)
 
+        # Utility to create a path from an image name:
+        def image_name_to_image_src(img_name):
+            return ("/" if website_root != "." else "") + image_paths + "/" + img_name
+
         # save the image:
         try:  # determine extension:
             extension = "." + img_object.format.lower()
@@ -559,16 +563,13 @@ the case when inputting strings.""")
             extension = ".svg"
         # ensure we use no image name twice & finally save the image:
         save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names)
-        cached_image_path = location_of_full_sized_image = os.path.join(abs_image_paths, save_image_as)
+        cached_image_path = os.path.join(abs_image_paths, save_image_as)
+        location_of_full_sized_image = image_name_to_image_src(save_image_as)
         try:
             img_object.save(cached_image_path)
         except AttributeError:
             with open(cached_image_path, "wb+") as f:
                 f.write(img_object)
-
-        # Utility to create a path from an image name:
-        def image_name_to_image_src(img_name):
-            return ("/" if website_root != "." else "") + image_paths + "/" + img_name
 
         # Open the final image and do compression, if it was specified to do so:
         if compression_information:
