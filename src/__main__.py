@@ -300,6 +300,37 @@ def compress_images_input_to_dict(compress_images) -> dict:
     # return the result:
     return compression_information
 
+# Compress and save image according to some arguments:
+
+
+def compress_image(full_image, width, bg_color, quality, progressive,
+                   base_file_name, file_name_addition, already_used_filenames) -> str:
+    thumbnail = full_image.copy()
+    size = (width, int(thumbnail.size[1] * width/thumbnail.size[0]))
+    thumbnail.thumbnail(size, Image.ANTIALIAS)
+
+    offset_x = max((size[0] - thumbnail.size[0]) / 2, 0)
+    offset_y = max((size[1] - thumbnail.size[1]) / 2, 0)
+    offset_tuple = (int(offset_x), int(offset_y))
+
+    final_thumb_rgba = Image.new(mode='RGBA', size=size, color=bg_color+(255,))
+    final_thumb_rgba.paste(thumbnail, offset_tuple, thumbnail.convert('RGBA'))
+
+    final_thumb = Image.new(mode='RGB', size=size, color=bg_color)
+    final_thumb.paste(final_thumb_rgba, offset_tuple)
+
+    def make_final_filename(name, add):
+        return name.rsplit(".", 1)[0] + add + "." + name.rsplit(".", 1)[1]
+    base_file_name = base_file_name.rsplit(".", 1)[0] + ".jpeg"
+    while make_final_filename(base_file_name, file_name_addition) in already_used_filenames:
+        base_file_name = make_final_filename(base_file_name, "_")
+    base_file_name = make_final_filename(base_file_name, file_name_addition)
+    already_used_filenames.add(base_file_name)
+
+    final_thumb.save(base_file_name, 'JPEG', quality=quality, optimize=True, progressive=progressive)
+
+    return base_file_name
+
 # The main function:
 
 
@@ -443,9 +474,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
         save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
         save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
-        while save_image_as in saved_image_names or not save_image_as:
-            save_image_as += "_"
-        saved_image_names.add(save_image_as)
         if image_src.startswith("./"):
             image_src = image_src[2:]
 
@@ -509,11 +537,16 @@ the case when inputting strings.""")
             img_object = Image.open(image_src)
 
         # save the image:
-        try:
+        try:  # determine extension:
             extension = "." + img_object.format.lower()
         except AttributeError:
             extension = ".svg"
+        # ensure we use no image name twice:
+        while save_image_as + extension in saved_image_names or not save_image_as:
+            save_image_as += "_"
         save_image_as += extension
+        saved_image_names.add(save_image_as)
+        # finally save the image:
         cached_image_path = os.path.join(abs_image_paths, save_image_as)
         try:
             img_object.save(cached_image_path)
@@ -521,10 +554,64 @@ the case when inputting strings.""")
             with open(cached_image_path, "wb+") as f:
                 f.write(img_object)
 
-        # change src/href tags to ensure we reference the right image
-        new_image_src = (
-                ("/" if website_root != "." else "") + image_paths + "/" + save_image_as
-        )
+        # Utility to create a path from an image name:
+        def image_name_to_image_src(image_name):
+            return ("/" if website_root != "." else "") + image_paths + "/" + save_image_as
+
+        # Open the final image and do compression, if it was specified to do so:
+        if compression_information:
+            full_image = Image.open(cached_image_path)
+            # Determine the images' width if any is specified:
+            width = (
+                int(img_soup_representation["width"].strip().replace(".px", ""))
+                if img_soup_representation["width"] and img_soup_representation["width"].endswith(".px")
+                else None
+            )
+            height = (
+                int(img_soup_representation["height"].strip().replace(".px", ""))
+                if img_soup_representation["height"] and img_soup_representation["height"].endswith(".px")
+                else None
+            )
+            if height and not width:
+                width = height * full_image.width / full_image.height
+            # If no size is specified and srcset is set, generate a set of resolutions:
+            if compression_information["srcset"] and not width:
+                srcset = set(compression_information["srcset"])
+                srcset.add(full_image.size[0])
+                # ^-- conversion to a set is necessary to ensure this step doesn't duplicate any sizes. Don't remove!
+                srcset = list(srcset)
+                srcset.sort()
+                # Create all the compressed images and a srcset-attribute for them:
+                srcset_attribute = str()
+                for size in srcset:
+                    srcset_attribute += image_name_to_image_src(compress_image(
+                        full_image,
+                        width=size,
+                        bg_color=compression_information["bg-color"],
+                        quality=compression_information["quality"],
+                        progressive=compression_information["progressive"],
+                        base_file_name=save_image_as,
+                        file_name_addition="." + str(size) + "px",
+                        already_used_filenames=saved_image_names
+                    )) + " " + str(width) + "w, "
+                img_soup_representation["srcset"] = srcset_attribute
+            # If width is specified or we just don't plan to use srcset, create only one image:
+            else:
+                if not width:
+                    width = full_image.width
+                save_image_as = compress_image(
+                    full_image,
+                    width=width,
+                    bg_color=compression_information["bg-color"],
+                    quality=compression_information["quality"],
+                    progressive=compression_information["progressive"],
+                    base_file_name=save_image_as,
+                    file_name_addition=".min",
+                    already_used_filenames=saved_image_names
+                )
+
+        # Change src/href tags to ensure we reference the right image:
+        new_image_src = image_name_to_image_src(save_image_as)
         img_soup_representation["src"] = new_image_src
         img_soup_representation["data-canonical-src"] = new_image_src
         if img_soup_representation.parent.name == "a"\
