@@ -558,9 +558,8 @@ the case when inputting strings.""")
         except AttributeError:
             extension = ".svg"
         # ensure we use no image name twice & finally save the image:
-        save_image_as = location_of_full_sized_image = make_unused_name(save_image_as + extension, "",
-                                                                        saved_image_names)
-        cached_image_path = os.path.join(abs_image_paths, save_image_as)
+        save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names)
+        cached_image_path = location_of_full_sized_image = os.path.join(abs_image_paths, save_image_as)
         try:
             img_object.save(cached_image_path)
         except AttributeError:
@@ -576,13 +575,13 @@ the case when inputting strings.""")
             full_image = Image.open(cached_image_path)
             # Determine the images' width if any is specified:
             width = (
-                int(img_soup_representation["width"].strip().replace(".px", ""))
-                if img_soup_representation.has_attr("width") and img_soup_representation["width"].endswith(".px")
+                int(img_soup_representation["width"].strip().replace("px", ""))
+                if img_soup_representation.has_attr("width") and img_soup_representation["width"].endswith("px")
                 else None
             )
             height = (
-                int(img_soup_representation["height"].strip().replace(".px", ""))
-                if img_soup_representation.has_attr("height") and img_soup_representation["height"].endswith(".px")
+                int(img_soup_representation["height"].strip().replace("px", ""))
+                if img_soup_representation.has_attr("height") and img_soup_representation["height"].endswith("px")
                 else None
             )
             if height and not width:
