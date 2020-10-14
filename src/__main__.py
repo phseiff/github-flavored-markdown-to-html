@@ -300,11 +300,33 @@ def compress_images_input_to_dict(compress_images) -> dict:
     # return the result:
     return compression_information
 
+# Find a filename from a name, a set of names that are already taken, and an appendix to add before the extension:
+
+
+def make_unused_name(base_file_name, file_name_addition, already_used_filenames, ending=None):
+    """Takes a base_file_name foo.x, a file_name_addition .bar, and a set of already used filenames.
+    Returns foo.bar.x, if foo.bar.x is not yet in already_used_filenames, and otherwise, adds enough
+    underscored to foo to make the file name unique. The result is returned and added to already_used_filenames.
+
+    If ending is specified (in the form .y), the generated file name will be foo.bar.y instead of foo.bar.x."""
+    def make_final_filename(name, add):
+        return name.rsplit(".", 1)[0] + add + "." + name.rsplit(".", 1)[1]
+    if not ending:
+        ending = "." + base_file_name.rsplit(".", 1)[-1]
+    base_file_name = base_file_name.rsplit(".", 1)[0] + ending
+    while make_final_filename(base_file_name, file_name_addition) in already_used_filenames:
+        base_file_name = make_final_filename(base_file_name, "_")
+    base_file_name = make_final_filename(base_file_name, file_name_addition)
+    already_used_filenames.add(base_file_name)
+
+    return base_file_name
+
+
 # Compress and save image according to some arguments:
 
 
 def compress_image(full_image, width, bg_color, quality, progressive,
-                   base_file_name, file_name_addition, already_used_filenames) -> str:
+                   base_file_name, file_name_addition, already_used_filenames, abs_image_paths) -> str:
     thumbnail = full_image.copy()
     size = (width, int(thumbnail.size[1] * width/thumbnail.size[0]))
     thumbnail.thumbnail(size, Image.ANTIALIAS)
@@ -319,15 +341,9 @@ def compress_image(full_image, width, bg_color, quality, progressive,
     final_thumb = Image.new(mode='RGB', size=size, color=bg_color)
     final_thumb.paste(final_thumb_rgba, offset_tuple)
 
-    def make_final_filename(name, add):
-        return name.rsplit(".", 1)[0] + add + "." + name.rsplit(".", 1)[1]
-    base_file_name = base_file_name.rsplit(".", 1)[0] + ".jpeg"
-    while make_final_filename(base_file_name, file_name_addition) in already_used_filenames:
-        base_file_name = make_final_filename(base_file_name, "_")
-    base_file_name = make_final_filename(base_file_name, file_name_addition)
-    already_used_filenames.add(base_file_name)
-
-    final_thumb.save(base_file_name, 'JPEG', quality=quality, optimize=True, progressive=progressive)
+    base_file_name = make_unused_name(base_file_name, file_name_addition, already_used_filenames, ".jpeg")
+    final_thumb.save(os.path.join(abs_image_paths, base_file_name), 'JPEG',
+                     quality=quality, optimize=True, progressive=progressive)
 
     return base_file_name
 
@@ -541,12 +557,8 @@ the case when inputting strings.""")
             extension = "." + img_object.format.lower()
         except AttributeError:
             extension = ".svg"
-        # ensure we use no image name twice:
-        while save_image_as + extension in saved_image_names or not save_image_as:
-            save_image_as += "_"
-        save_image_as += extension
-        saved_image_names.add(save_image_as)
-        # finally save the image:
+        # ensure we use no image name twice & finally save the image:
+        save_image_as, location_of_full_sized_image = make_unused_name(save_image_as + extension, "", saved_image_names)
         cached_image_path = os.path.join(abs_image_paths, save_image_as)
         try:
             img_object.save(cached_image_path)
@@ -555,8 +567,8 @@ the case when inputting strings.""")
                 f.write(img_object)
 
         # Utility to create a path from an image name:
-        def image_name_to_image_src(image_name):
-            return ("/" if website_root != "." else "") + image_paths + "/" + save_image_as
+        def image_name_to_image_src(img_name):
+            return ("/" if website_root != "." else "") + image_paths + "/" + img_name
 
         # Open the final image and do compression, if it was specified to do so:
         if compression_information:
@@ -592,7 +604,8 @@ the case when inputting strings.""")
                         progressive=compression_information["progressive"],
                         base_file_name=save_image_as,
                         file_name_addition="." + str(size) + "px",
-                        already_used_filenames=saved_image_names
+                        already_used_filenames=saved_image_names,
+                        abs_image_paths=abs_image_paths
                     )) + " " + str(width) + "w, "
                 img_soup_representation["srcset"] = srcset_attribute
             # If width is specified, or we just don't plan to use srcset, create only one image:
@@ -607,7 +620,8 @@ the case when inputting strings.""")
                     progressive=compression_information["progressive"],
                     base_file_name=save_image_as,
                     file_name_addition=".min",
-                    already_used_filenames=saved_image_names
+                    already_used_filenames=saved_image_names,
+                    abs_image_paths=abs_image_paths
                 )
 
         # Change src/href tags to ensure we reference the right image:
@@ -616,7 +630,7 @@ the case when inputting strings.""")
         img_soup_representation["data-canonical-src"] = new_image_src
         if img_soup_representation.parent.name == "a"\
                 and img_soup_representation.parent["href"] == original_markdown_image_src:
-            img_soup_representation.parent["href"] = new_image_src
+            img_soup_representation.parent["href"] = location_of_full_sized_image
 
     html_rendered = html_soup.__str__()
 
