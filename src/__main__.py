@@ -585,7 +585,7 @@ the case when inputting strings.""")
                 else None
             )
             if height and not width:
-                width = height * full_image.width / full_image.height
+                width = int(height * full_image.width / full_image.height)
             # If no size is specified and srcset is set, generate a set of resolutions:
             if compression_information["srcset"] and not width:
                 srcset = set(compression_information["srcset"])
