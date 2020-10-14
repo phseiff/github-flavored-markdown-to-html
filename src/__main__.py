@@ -255,8 +255,9 @@ def compress_images_input_to_dict(compress_images) -> dict:
         if type(compress_images) is dict:  # <-- Use the given input if its type is dict.
             compression_information = compress_images
         else:
+            print(compress_images)
             compression_information = json.loads(compress_images)
-    except json.decoder.JSONDecodeError:
+    except (json.decoder.JSONDecodeError, TypeError) as e:
         raise ValueError("Apparently, your compression information was not valid json data.")
 
     # Fill in default values for all omitted fields:
