@@ -342,6 +342,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
+    print("comp:", compress_images)
     compression_information = compress_images_input_to_dict(compress_images)
     if website_root is None:
         website_root = ""
