@@ -558,7 +558,8 @@ the case when inputting strings.""")
         except AttributeError:
             extension = ".svg"
         # ensure we use no image name twice & finally save the image:
-        save_image_as, location_of_full_sized_image = make_unused_name(save_image_as + extension, "", saved_image_names)
+        save_image_as = location_of_full_sized_image = make_unused_name(save_image_as + extension, "",
+                                                                        saved_image_names)
         cached_image_path = os.path.join(abs_image_paths, save_image_as)
         try:
             img_object.save(cached_image_path)
