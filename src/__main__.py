@@ -564,12 +564,12 @@ the case when inputting strings.""")
             # Determine the images' width if any is specified:
             width = (
                 int(img_soup_representation["width"].strip().replace(".px", ""))
-                if img_soup_representation.has_attribute("width") and img_soup_representation["width"].endswith(".px")
+                if img_soup_representation.has_attr("width") and img_soup_representation["width"].endswith(".px")
                 else None
             )
             height = (
                 int(img_soup_representation["height"].strip().replace(".px", ""))
-                if img_soup_representation.has_attribute("height") and img_soup_representation["height"].endswith(".px")
+                if img_soup_representation.has_attr("height") and img_soup_representation["height"].endswith(".px")
                 else None
             )
             if height and not width:
