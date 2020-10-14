@@ -255,7 +255,6 @@ def compress_images_input_to_dict(compress_images) -> dict:
         if type(compress_images) is dict:  # <-- Use the given input if its type is dict.
             compression_information = compress_images
         else:
-            print(compress_images)
             compression_information = json.loads(compress_images)
     except (json.decoder.JSONDecodeError, TypeError) as e:
         raise ValueError("Apparently, your compression information was not valid json data.")
@@ -342,7 +341,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
-    print("comp:", compress_images)
     compression_information = compress_images_input_to_dict(compress_images)
     if website_root is None:
         website_root = ""
@@ -566,12 +564,12 @@ the case when inputting strings.""")
             # Determine the images' width if any is specified:
             width = (
                 int(img_soup_representation["width"].strip().replace(".px", ""))
-                if img_soup_representation["width"] and img_soup_representation["width"].endswith(".px")
+                if img_soup_representation.has_attribute("width") and img_soup_representation["width"].endswith(".px")
                 else None
             )
             height = (
                 int(img_soup_representation["height"].strip().replace(".px", ""))
-                if img_soup_representation["height"] and img_soup_representation["height"].endswith(".px")
+                if img_soup_representation.has_attribute("height") and img_soup_representation["height"].endswith(".px")
                 else None
             )
             if height and not width:
@@ -597,7 +595,7 @@ the case when inputting strings.""")
                         already_used_filenames=saved_image_names
                     )) + " " + str(width) + "w, "
                 img_soup_representation["srcset"] = srcset_attribute
-            # If width is specified or we just don't plan to use srcset, create only one image:
+            # If width is specified, or we just don't plan to use srcset, create only one image:
             else:
                 if not width:
                     width = full_image.width
