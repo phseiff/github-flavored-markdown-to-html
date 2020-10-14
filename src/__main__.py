@@ -589,11 +589,10 @@ the case when inputting strings.""")
                 width = int(height * full_image.width / full_image.height)
             # If no size is specified and srcset is set, generate a set of resolutions:
             if compression_information["srcset"] and not width:
-                srcset = set(compression_information["srcset"])
-                srcset.add(full_image.size[0])
-                # ^-- conversion to a set is necessary to ensure this step doesn't duplicate any sizes. Don't remove!
-                srcset = list(srcset)
+                srcset = compression_information["srcset"]
                 srcset.sort()
+                srcset = list(filter((lambda x: x < full_image.width), srcset))
+                srcset.append(full_image.width)
                 # Create all the compressed images and a srcset-attribute for them:
                 srcset_attribute = str()
                 for size in srcset:
@@ -607,7 +606,7 @@ the case when inputting strings.""")
                         file_name_addition="." + str(size) + "px",
                         already_used_filenames=saved_image_names,
                         abs_image_paths=abs_image_paths
-                    )) + " " + str(width) + "w, "
+                    )) + " " + str(size) + "w, "
                 img_soup_representation["srcset"] = srcset_attribute
             # If width is specified, or we just don't plan to use srcset, create only one image:
             else:
