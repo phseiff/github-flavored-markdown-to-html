@@ -306,8 +306,21 @@ def compress_images_input_to_dict(compress_images) -> dict:
 
 def hash_image(img):
     pixel_data = list(img.getdata())
-    avg_pixel = sum(pixel_data) / len(pixel_data)
-    bits = "".join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
+    avg_pixel0 = sum(pixel_data[0]) / len(pixel_data)
+    avg_pixel1 = sum(pixel_data[1]) / len(pixel_data)
+    avg_pixel2 = sum(pixel_data[2]) / len(pixel_data)
+    if len(pixel_data[0]) == 4:
+        avg_pixel3 = sum(pixel_data[3]) / len(pixel_data)
+    else:
+        avg_pixel3 = ""
+
+    bits0 = "".join(['1' if (sum(px) >= avg_pixel0) else '0' for px in pixel_data])
+    bits1 = "".join(['1' if (sum(px) >= avg_pixel1) else '0' for px in pixel_data])
+    bits2 = "".join(['1' if (sum(px) >= avg_pixel2) else '0' for px in pixel_data])
+    bits = bits0 + bits1 + bits2
+    if len(pixel_data[0]) == 4:
+        bits += "".join(['1' if (sum(px) >= avg_pixel3) else '0' for px in pixel_data])
+
     hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
     hex_representation += str(img.size) + "||" + str(img.format)
 
@@ -657,6 +670,9 @@ the case when inputting strings.""")
             img_soup_representation.parent["href"] = location_of_full_sized_image
 
     html_rendered = html_soup.__str__()
+
+    if DEBUG:
+        print("dict of image hashes:", hashes_to_images)
 
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
