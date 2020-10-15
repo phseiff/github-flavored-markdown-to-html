@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 import io
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
-DEBUG = False  # weather to print debug information
+DEBUG = True  # weather to print debug information
 
 
 def open_local(path, mode):
@@ -305,6 +305,8 @@ def compress_images_input_to_dict(compress_images) -> dict:
 
 
 def hash_image(img):
+    if type(img) in (str, bytes):
+        return str(img, encoding="UTF-8")
     pixel_data = list(img.getdata())
     avg_pixel0 = sum(pixel_data[0]) / len(pixel_data)
     avg_pixel1 = sum(pixel_data[1]) / len(pixel_data)
@@ -322,7 +324,7 @@ def hash_image(img):
         bits += "".join(['1' if (sum(px) >= avg_pixel3) else '0' for px in pixel_data])
 
     hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
-    hex_representation += str(img.size) + "||" + str(img.format)
+    hex_representation += "||" + str(img.size) + "||" + str(img.format.lower())
 
     return hex_representation
 
@@ -598,8 +600,6 @@ the case when inputting strings.""")
         except AttributeError:
             extension = ".svg"
         # ensure we use no image name twice & finally save the image:
-        if type(img_object) == bytes:
-            img_object = Image.open(io.BytesIO(img_object))
         save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
                                          hash_image(img_object))
         cached_image_path = os.path.join(abs_image_paths, save_image_as)
@@ -607,7 +607,7 @@ the case when inputting strings.""")
         img_object.save(cached_image_path)
 
         # Open the final image and do compression, if it was specified to do so:
-        if compression_information:
+        if compression_information and extension != ".svg":
             full_image = Image.open(cached_image_path)
             # Determine the images' width if any is specified:
             width = (
