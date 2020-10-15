@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 import io
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
-DEBUG = True  # weather to print debug information
+DEBUG = False  # weather to print debug information
 
 
 def open_local(path, mode):
