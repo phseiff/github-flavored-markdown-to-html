@@ -496,8 +496,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     # ensure we have all the images in the images path:
     hashes_to_images = dict()
     saved_image_names = set(  # <-- defines which images we already have within our image directory
-        image_name.rsplit(".", 1)[0]
-        for image_name in os.listdir(abs_image_paths)
+        image_name for image_name in os.listdir(abs_image_paths)
         if os.path.isfile(os.path.join(abs_image_paths, image_name))
     )
     for image_name in saved_image_names:
