@@ -600,7 +600,7 @@ the case when inputting strings.""")
         # ensure we use no image name twice & finally save the image:
         if type(img_object) == bytes:
             img_object = Image.open(io.BytesIO(img_object))
-        save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_filenames,
+        save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
                                          hash_image(img_object))
         cached_image_path = os.path.join(abs_image_paths, save_image_as)
         location_of_full_sized_image = image_name_to_image_src(save_image_as)
