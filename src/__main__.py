@@ -607,7 +607,7 @@ the case when inputting strings.""")
                         already_used_filenames=saved_image_names,
                         abs_image_paths=abs_image_paths
                     )) + " " + str(size) + "w, "
-                img_soup_representation["srcset"] = srcset_attribute.rsplit(" ", 2)[0] + "3000w"
+                img_soup_representation["srcset"] = srcset_attribute  # .rsplit(" ", 2)[0] + " 3000w"
             # If width is specified, or we just don't plan to use srcset, create only one image:
             else:
                 if not width:
