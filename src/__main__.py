@@ -324,7 +324,7 @@ def hash_image(img):
         bits += "".join(['1' if (sum(px) >= avg_pixel3) else '0' for px in pixel_data])
 
     hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
-    hex_representation += "||" + str(img.size) + "||" + str(img.format.lower())
+    hex_representation += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
     return hex_representation
 
