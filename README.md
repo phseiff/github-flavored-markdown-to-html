@@ -36,8 +36,8 @@ Advantages include:
   [Darkreader](https://github.com/darkreader/darkreader) (the
   .js-module, not necessarily the browser extension. This means that formulas are displayed
   with a light text when in darkmode, amongst other things).
-* Supports umlauts and other non-ascii-characters in plain text as well as multiline code blocks, which the github REST
-  api usually doesn't.
+* Supports umlauts and other non-ascii-characters in plain text as well as in multiline code blocks, which the github
+  REST api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
 * Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
@@ -47,6 +47,8 @@ Advantages include:
   images. There is also an option to save all images in multiple sizes and let the html viewer/browser pick the one
   fitting for the viewport size (using the img srcset attribute), thus making gh-md-to-html the only md-to-html
   converter with builtin srcset support for image load reduction.
+* If two images from equal or different sources are referenced in the given markdown file, and both would be saved in
+  the same resolution et cetera, both are pointed to the same copy in the generated html to minimize loading overhead.
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
