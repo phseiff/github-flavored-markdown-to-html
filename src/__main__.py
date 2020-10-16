@@ -308,11 +308,11 @@ def hash_image(img):
     if type(img) in (str, bytes):
         return str(img, encoding="UTF-8")
     pixel_data = list(img.getdata())
-    avg_pixel0 = sum(pixel_data[0]) / len(pixel_data)
-    avg_pixel1 = sum(pixel_data[1]) / len(pixel_data)
-    avg_pixel2 = sum(pixel_data[2]) / len(pixel_data)
+    avg_pixel0 = sum([i[0] for i in pixel_data]) / len(pixel_data)
+    avg_pixel1 = sum([i[1] for i in pixel_data]) / len(pixel_data)
+    avg_pixel2 = sum([i[2] for i in pixel_data]) / len(pixel_data)
     if len(pixel_data[0]) == 4:
-        avg_pixel3 = sum(pixel_data[3]) / len(pixel_data)
+        avg_pixel3 = sum([i[3] for i in pixel_data]) / len(pixel_data)
     else:
         avg_pixel3 = ""
 
@@ -324,7 +324,8 @@ def hash_image(img):
         bits += "".join(['1' if (sum(px) >= avg_pixel3) else '0' for px in pixel_data])
 
     hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
-    hex_representation += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
+    hex_representation += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))\
+        + "||" + str((avg_pixel0, avg_pixel1, avg_pixel2, avg_pixel3)) + "||" + str(pixel_data[0])
 
     return hex_representation
 
