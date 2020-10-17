@@ -663,9 +663,12 @@ the case when inputting strings.""")
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
 
-    # ensure we have the css where we want it to be:
+    # ensure we have the css and the code navigation banner where we want it to be:
     with open_local("github-css.min.css", "r") as from_f:
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
+            to_f.write(from_f.read())
+    with open_local("code-navigation-banner-illo.svg", "r") as from_f:
+        with open(os.path.join(abs_css_paths, "code-navigation-banner-illo.svg"), "w") as to_f:
             to_f.write(from_f.read())
 
     # save html where we want it to be:
