@@ -19,6 +19,7 @@ import webcolors
 from ast import literal_eval as make_tuple
 from bs4 import BeautifulSoup
 import io
+import hashlib
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
@@ -307,27 +308,11 @@ def compress_images_input_to_dict(compress_images) -> dict:
 def hash_image(img):
     if type(img) in (str, bytes):
         return str(img, encoding="UTF-8")
-    pixel_data = list(img.getdata())
-    avg_pixel0 = sum([i[0] for i in pixel_data]) / len(pixel_data)
-    avg_pixel1 = sum([i[1] for i in pixel_data]) / len(pixel_data)
-    avg_pixel2 = sum([i[2] for i in pixel_data]) / len(pixel_data)
-    if len(pixel_data[0]) == 4:
-        avg_pixel3 = sum([i[3] for i in pixel_data]) / len(pixel_data)
-    else:
-        avg_pixel3 = ""
 
-    bits0 = "".join(['1' if (sum(px) >= avg_pixel0) else '0' for px in pixel_data])
-    bits1 = "".join(['1' if (sum(px) >= avg_pixel1) else '0' for px in pixel_data])
-    bits2 = "".join(['1' if (sum(px) >= avg_pixel2) else '0' for px in pixel_data])
-    bits = bits0 + bits1 + bits2
-    if len(pixel_data[0]) == 4:
-        bits += "".join(['1' if (sum(px) >= avg_pixel3) else '0' for px in pixel_data])
+    pixel_data_string = "".join(str(tuple(px)) for px in list(img.getdata()))
+    pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
-    hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
-    hex_representation += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))\
-        + "||" + str((avg_pixel0, avg_pixel1, avg_pixel2, avg_pixel3)) + "||" + str(pixel_data[0])
-
-    return hex_representation
+    return str(hashlib.md5(pixel_data_string.encode()).hexdigest())
 
 # Find a filename from a name, a set of names that are already taken, and an appendix to add before the extension:
 
