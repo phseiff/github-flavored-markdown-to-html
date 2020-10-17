@@ -47,8 +47,9 @@ Advantages include:
   images. There is also an option to save all images in multiple sizes and let the html viewer/browser pick the one
   fitting for the viewport size (using the img srcset attribute), thus making gh-md-to-html the only md-to-html
   converter with builtin srcset support for image load reduction.
-* If two images from equal or different sources are referenced in the given markdown file, and both would be saved in
-  the same resolution et cetera, both are pointed to the same copy in the generated html to minimize loading overhead.
+* If two equal images from equal or different sources are referenced in the given markdown file, and both would be saved
+  in the same resolution et cetera, both are pointed to the same copy in the generated html to minimize loading
+  overhead.
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
