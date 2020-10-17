@@ -650,7 +650,7 @@ the case when inputting strings.""")
         # Change src/href tags to ensure we reference the right image:
         new_image_src = image_name_to_image_src(save_image_as)
         img_soup_representation["src"] = new_image_src
-        img_soup_representation["data-canonical-src"] = new_image_src
+        img_soup_representation["data-canonical-src"] = location_of_full_sized_image
         if img_soup_representation.parent.name == "a"\
                 and img_soup_representation.parent["href"] == original_markdown_image_src:
             img_soup_representation.parent["href"] = location_of_full_sized_image
