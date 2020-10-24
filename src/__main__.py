@@ -23,7 +23,7 @@ import io
 import hashlib
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
-DEBUG = False  # weather to print debug information
+DEBUG = True  # weather to print debug information
 HASH_FUNCTION_TO_USE_ON_IMAGES = hashlib.md5
 
 
