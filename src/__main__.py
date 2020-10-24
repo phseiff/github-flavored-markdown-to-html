@@ -314,7 +314,7 @@ def hash_image(img):
     pixel_data = list()
     for pixel in list(img.getdata()):
         pixel_data += list(pixel)
-    pixel_data_string = str(bytes(pixel_data), encoding="UTF-8")
+    pixel_data_string = str(bytes(pixel_data), encoding="ascii")
     pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
     return str(HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string.encode()).hexdigest())
