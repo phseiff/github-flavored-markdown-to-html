@@ -309,7 +309,7 @@ def compress_images_input_to_dict(compress_images) -> dict:
 
 def hash_image(img):
     if type(img) in (str, bytes):
-        return str(img, encoding="UTF-8")
+        return str(HASH_FUNCTION_TO_USE_ON_IMAGES(str(img, encoding="UTF-8").encode()).hexdigest(), encoding="UTF-8")
 
     pixel_data = tuple()
     for pixel in list(img.getdata()):
@@ -579,7 +579,10 @@ the case when inputting strings.""")
             except (OSError, PIL.UnidentifiedImageError):
                 img_object = requests.get(image_src).content
         else:
-            img_object = Image.open(image_src)
+            try:
+                img_object = Image.open(image_src)
+            except (OSError, PIL.UnidentifiedImageError):
+                img_object = open(image_src, "rb").read()
 
         # Utility to create a path from an image name:
         def image_name_to_image_src(img_name):
