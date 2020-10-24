@@ -23,6 +23,7 @@ import hashlib
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
+HASH_FUNCTION_TO_USE_ON_IMAGES = hashlib.md5
 
 
 def open_local(path, mode):
@@ -309,10 +310,13 @@ def hash_image(img):
     if type(img) in (str, bytes):
         return str(img, encoding="UTF-8")
 
-    pixel_data_string = "".join(str(tuple(px)) for px in list(img.getdata()))
+    pixel_data = tuple()
+    for pixel in list(img.getdata()):
+        pixel_data += tuple(pixel)
+    pixel_data_string = str(bytes(pixel_data), encoding="UTF-8")
     pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
-    return str(hashlib.md5(pixel_data_string.encode()).hexdigest())
+    return str(HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string.encode()).hexdigest())
 
 # Find a filename from a name, a set of names that are already taken, and an appendix to add before the extension:
 
