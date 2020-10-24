@@ -10,6 +10,7 @@ import sys
 import os
 import shellescape
 from PIL import Image
+import PIL
 from io import BytesIO
 from urllib.parse import quote
 import traceback
@@ -575,7 +576,7 @@ the case when inputting strings.""")
         if load_from_web:
             try:
                 img_object = Image.open(BytesIO(requests.get(image_src).content))
-            except OSError:
+            except (OSError, PIL.UnidentifiedImageError):
                 img_object = requests.get(image_src).content
         else:
             img_object = Image.open(image_src)
@@ -591,10 +592,14 @@ the case when inputting strings.""")
             extension = ".svg"
         # ensure we use no image name twice & finally save the image:
         save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
-                                         hash_image(img_object))
-        cached_image_path = os.path.join(abs_image_paths, save_image_as)
-        location_of_full_sized_image = image_name_to_image_src(save_image_as)
-        img_object.save(cached_image_path)
+                                         hash_image(img_object))  # <-- file name to save as
+        cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
+        location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-- how we call that path in the html
+        if extension != ".svg":
+            img_object.save(cached_image_path)
+        else:
+            with open(cached_image_path, "wb") as img_out_file:
+                img_out_file.write(img_object)
 
         # Open the final image and do compression, if it was specified to do so:
         if compression_information and extension != ".svg":
