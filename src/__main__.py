@@ -320,12 +320,12 @@ def hash_image(img):
     return str(HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string.encode()).hexdigest())
 
 
-def test_image_hashing():
-    import time
-    t = time.time()
-    hash_image(Image.open("images/68747470733a2f2f706873656966662e636f6d2f696d616765732f69636f6e2e6a706567.jpeg"))
-    print("t:", time.time() - t)
-test_image_hashing()
+# def test_image_hashing():
+#     import time
+#     t = time.time()
+#     hash_image(Image.open("images/68747470733a2f2f706873656966662e636f6d2f696d616765732f69636f6e2e6a706567.jpeg"))
+#     print("t:", time.time() - t)
+# test_image_hashing()
 
 # Find a filename from a name, a set of names that are already taken, and an appendix to add before the extension:
 
@@ -550,8 +550,8 @@ the case when inputting strings.""")
                     user_name, repo_name, branch_name, *path = md_origin.split("/")
                     url_root = (
                             "https://github.com/" + user_name
-                            + "/" + repo_name +
-                            "/raw/" + branch_name
+                            + "/" + repo_name
+                            + "/raw/" + branch_name
                     )
                     url_full = url_root + "/" + "/".join(path[:-1]) + "/"
                 else:  # origin_type == "web":
@@ -566,17 +566,14 @@ the case when inputting strings.""")
                 load_from_web = True
 
             elif origin_type in ("file", "string"):
-                # get the current directory (for relative file paths) depending on the origin_type
-                if origin_type == "file":
-                    location = md_origin.rsplit(os.sep, 1)[0]
-                    if not os.path.isabs(location):
-                        location = os.path.join(os.getcwd(), location)
-                else:  # elif origin_type == "string":
+                # get an absolute path to the image in case the image path is relative to the file location:
+                if not os.path.isabs(image_src):
+                    # get the current directory (for relative file paths) depending on the origin_type
                     location = os.getcwd()
-                # check if we have an absolute or a non-absolute path
-                if os.path.isabs(image_src):
-                    image_src = image_src
-                else:
+                    if origin_type == "file" and os.sep in md_origin:
+                        location = md_origin.rsplit(os.sep, 1)[0]
+                        if not os.path.abspath(location):
+                            location = os.path.join(os.getcwd(), location)
                     image_src = os.path.join(location, image_src.replace("/", os.sep))
                 load_from_web = False
 
