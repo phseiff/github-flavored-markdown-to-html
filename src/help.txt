@@ -1,5 +1,3 @@
-t: 0.08169102668762207
-t: 0.07362723350524902
 usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-w WEBSITE_ROOT [WEBSITE_ROOT ...]]
                    [-d DESTINATION [DESTINATION ...]]

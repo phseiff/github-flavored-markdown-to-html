@@ -122,8 +122,6 @@ All arguments and how they work are documented in the help text of the program, 
 like this:
 
 ```
-t: 0.08169102668762207
-t: 0.07362723350524902
 usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-w WEBSITE_ROOT [WEBSITE_ROOT ...]]
                    [-d DESTINATION [DESTINATION ...]]
