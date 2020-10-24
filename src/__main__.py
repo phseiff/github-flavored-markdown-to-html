@@ -311,13 +311,21 @@ def hash_image(img):
     if type(img) in (str, bytes):
         return str(HASH_FUNCTION_TO_USE_ON_IMAGES(str(img, encoding="UTF-8").encode()).hexdigest(), encoding="UTF-8")
 
-    pixel_data = tuple()
+    pixel_data = list()
     for pixel in list(img.getdata()):
-        pixel_data += tuple(pixel)
+        pixel_data += list(pixel)
     pixel_data_string = str(bytes(pixel_data), encoding="UTF-8")
     pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
     return str(HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string.encode()).hexdigest())
+
+
+def test_image_hashing():
+    import time
+    t = time.time()
+    hash_image(Image.open("images/68747470733a2f2f706873656966662e636f6d2f696d616765732f69636f6e2e6a706567.jpeg"))
+    print("t:", time.time() - t)
+test_image_hashing()
 
 # Find a filename from a name, a set of names that are already taken, and an appendix to add before the extension:
 
