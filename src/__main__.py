@@ -21,6 +21,7 @@ from ast import literal_eval as make_tuple
 from bs4 import BeautifulSoup
 import io
 import hashlib
+import math as math_module
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
@@ -639,7 +640,7 @@ the case when inputting strings.""")
                 else None
             )
             if height and not width:
-                width = int(height * full_image.width / full_image.height)
+                width = math_module.ceil(height * full_image.width / full_image.height)
             # If no size is specified and srcset is set, generate a set of resolutions:
             if compression_information["srcset"] and not width:
                 srcset = compression_information["srcset"]
