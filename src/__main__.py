@@ -23,7 +23,7 @@ import io
 import hashlib
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
-DEBUG = True  # weather to print debug information
+DEBUG = False  # weather to print debug information
 HASH_FUNCTION_TO_USE_ON_IMAGES = hashlib.md5
 
 
@@ -304,6 +304,16 @@ def compress_images_input_to_dict(compress_images) -> dict:
     # return the result:
     return compression_information
 
+# Find a fitting hash function for the amount of images we plan to hash:
+
+
+def find_fitting_hash_function(amount_of_images):
+    global HASH_FUNCTION_TO_USE_ON_IMAGES
+    if amount_of_images <= 1000:
+        HASH_FUNCTION_TO_USE_ON_IMAGES = hash
+    else:
+        HASH_FUNCTION_TO_USE_ON_IMAGES = hashlib.md5
+
 # Hash an image:
 
 
@@ -515,12 +525,13 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         image_name for image_name in os.listdir(abs_image_paths)
         if os.path.isfile(os.path.join(abs_image_paths, image_name))
     )
+    html_soup = BeautifulSoup(html_rendered, 'html.parser')
+    find_fitting_hash_function(len(saved_image_names) + len(html_soup.find_all("img")))
     for image_name in saved_image_names:
         hashes_to_images[hash_image(Image.open(os.path.join(abs_image_paths, image_name)))] = image_name
     if DEBUG:
         print("already existent images:", saved_image_names)
 
-    html_soup = BeautifulSoup(html_rendered, 'html.parser')
     for img_soup_representation in html_soup.find_all("img"):
         # ^Iterate over all images referenced in the markdown file
         image_src = original_markdown_image_src = img_soup_representation.get("src")
