@@ -526,7 +526,11 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     html_soup = BeautifulSoup(html_rendered, 'html.parser')
     find_fitting_hash_function(len(saved_image_names) + len(html_soup.find_all("img")))
     for image_name in saved_image_names:
-        hashes_to_images[hash_image(Image.open(os.path.join(abs_image_paths, image_name)))] = image_name
+        hashes_to_images[hash_image(
+            Image.open(os.path.join(abs_image_paths, image_name))
+            if not image_name.endswith(".svg")
+            else open(image_name, "rb").read()
+        )] = image_name
     if DEBUG:
         print("already existent images:", saved_image_names)
 
