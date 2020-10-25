@@ -308,8 +308,10 @@ def compress_images_input_to_dict(compress_images) -> dict:
 
 
 def hash_image(img):
-    if type(img) in (str, bytes):
-        return str(HASH_FUNCTION_TO_USE_ON_IMAGES(str(img, encoding="UTF-8").encode()).hexdigest(), encoding="UTF-8")
+    if type(img) is str:
+        return str(HASH_FUNCTION_TO_USE_ON_IMAGES(img.encode()).hexdigest())
+    elif type(img) is bytes:
+        return str(HASH_FUNCTION_TO_USE_ON_IMAGES(img).hexdigest())
 
     pixel_data = list()
     for pixel in list(img.getdata()):
