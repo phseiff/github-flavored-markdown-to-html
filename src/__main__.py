@@ -626,6 +626,7 @@ the case when inputting strings.""")
                 img_out_file.write(img_object)
 
         # Open the final image and do compression, if it was specified to do so:
+        height = None
         if compression_information and extension != ".svg":
             full_image = Image.open(cached_image_path)
             # Determine the images' width if any is specified:
@@ -679,9 +680,15 @@ the case when inputting strings.""")
                     abs_image_paths=abs_image_paths,
                     hashes_to_images=hashes_to_images,
                 )
-
+        # Calculate the images max height:
+        if not height and extension != ".svg":
+            max_height_css_information = "; max-height: " + str(img_object.height) + "px;"
+        else:
+            max_height_css_information = ""
         # Change src/href tags to ensure we reference the right image:
         new_image_src = image_name_to_image_src(save_image_as)
+        img_soup_representation["style"] = img_soup_representation["style"].strip().rstrip(";")\
+                + max_height_css_information
         img_soup_representation["src"] = new_image_src
         img_soup_representation["data-canonical-src"] = location_of_full_sized_image
         if img_soup_representation.parent.name == "a"\
