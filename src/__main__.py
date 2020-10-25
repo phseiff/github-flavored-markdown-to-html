@@ -397,7 +397,7 @@ def compress_image(full_image, width, bg_color, quality, progressive,
 def main(md_origin, origin_type="file", website_root=None, destination=None, image_paths=None, css_paths=None,
          output_name="<name>.html", output_pdf=None, style_pdf="True", footer=None, math="True",
          formulas_supporting_darkreader=False, extra_css=None, core_converter=markdown_to_html_via_github_api,
-         compress_images=False):
+         compress_images=False, enable_image_downloading=True):
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
@@ -519,190 +519,191 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     # ]
 
     # ensure we have all the images in the images path:
-    hashes_to_images = dict()
-    saved_image_names = set(  # <-- defines which images we already have within our image directory
-        image_name for image_name in os.listdir(abs_image_paths)
-        if os.path.isfile(os.path.join(abs_image_paths, image_name))
-    )
-    html_soup = BeautifulSoup(html_rendered, 'html.parser')
-    find_fitting_hash_function(len(saved_image_names) + len(html_soup.find_all("img")))
-    for image_name in saved_image_names:
-        hashes_to_images[hash_image(
-            Image.open(os.path.join(abs_image_paths, image_name))
-            if not image_name.endswith(".svg")
-            else open(os.path.join(abs_image_paths, image_name), "rb").read()
-        )] = image_name
-    if DEBUG:
-        print("already existent images:", saved_image_names)
+    if enable_image_downloading:
+        hashes_to_images = dict()
+        saved_image_names = set(  # <-- defines which images we already have within our image directory
+            image_name for image_name in os.listdir(abs_image_paths)
+            if os.path.isfile(os.path.join(abs_image_paths, image_name))
+        )
+        html_soup = BeautifulSoup(html_rendered, 'html.parser')
+        find_fitting_hash_function(len(saved_image_names) + len(html_soup.find_all("img")))
+        for image_name in saved_image_names:
+            hashes_to_images[hash_image(
+                Image.open(os.path.join(abs_image_paths, image_name))
+                if not image_name.endswith(".svg")
+                else open(os.path.join(abs_image_paths, image_name), "rb").read()
+            )] = image_name
+        if DEBUG:
+            print("already existent images:", saved_image_names)
 
-    for img_soup_representation in html_soup.find_all("img"):
-        # ^Iterate over all images referenced in the markdown file
-        image_src = original_markdown_image_src = img_soup_representation.get("src")
-        if image_src == "":
-            continue  # <-- In case some images with no source where injected for some reason
-        save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
-        save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
-        save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
-        if image_src.startswith("./"):
-            image_src = image_src[2:]
+        for img_soup_representation in html_soup.find_all("img"):
+            # ^Iterate over all images referenced in the markdown file
+            image_src = original_markdown_image_src = img_soup_representation.get("src")
+            if image_src == "":
+                continue  # <-- In case some images with no source where injected for some reason
+            save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
+            save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
+            save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
+            if image_src.startswith("./"):
+                image_src = image_src[2:]
 
-        # actually get the image:
+            # actually get the image:
 
-        load_from_web = False
-        if image_src.startswith("https://") or image_src.startswith("http://"):
-            # it is clearly an absolute url:
-            load_from_web = True
-        else:
-            if origin_type == "string":
-                # This is a security risk since web content might get one to embed local images from one's disk
-                # into one's website when automatically cloning .md-files found online.
-                input("""press enter if you are sure you trust that string. Remove this line if this is always
-the case when inputting strings.""")
-
-            if origin_type in ("repo", "web"):
-                # create website domain name and specific path from md_origin depending on whether we pull from
-                # a repo or the web:
-                if origin_type == "repo":
-                    user_name, repo_name, branch_name, *path = md_origin.split("/")
-                    url_root = (
-                            "https://github.com/" + user_name
-                            + "/" + repo_name
-                            + "/raw/" + branch_name
-                    )
-                    url_full = url_root + "/" + "/".join(path[:-1]) + "/"
-                else:  # origin_type == "web":
-                    url_root = "/".join(md_origin.split("/")[:3])
-                    url_full = md_origin.rsplit("/", 1)[0] + "/"
-                # Create full web image path depending on weather we have an absolute relative link or just a regular
-                # relative link:
-                if image_src.startswith("/"):
-                    image_src = url_root + image_src
-                else:
-                    image_src = url_full + image_src
+            load_from_web = False
+            if image_src.startswith("https://") or image_src.startswith("http://"):
+                # it is clearly an absolute url:
                 load_from_web = True
+            else:
+                if origin_type == "string":
+                    # This is a security risk since web content might get one to embed local images from one's disk
+                    # into one's website when automatically cloning .md-files found online.
+                    input("""press enter if you are sure you trust that string. Remove this line if this is always
+    the case when inputting strings.""")
 
-            elif origin_type in ("file", "string"):
-                # get an absolute path to the image in case the image path is relative to the file location:
-                if not os.path.isabs(image_src):
-                    # get the current directory (for relative file paths) depending on the origin_type
-                    location = os.getcwd()
-                    if origin_type == "file" and os.sep in md_origin:
-                        location = md_origin.rsplit(os.sep, 1)[0]
-                        if not os.path.abspath(location):
-                            location = os.path.join(os.getcwd(), location)
-                    image_src = os.path.join(location, image_src.replace("/", os.sep))
-                load_from_web = False
+                if origin_type in ("repo", "web"):
+                    # create website domain name and specific path from md_origin depending on whether we pull from
+                    # a repo or the web:
+                    if origin_type == "repo":
+                        user_name, repo_name, branch_name, *path = md_origin.split("/")
+                        url_root = (
+                                "https://github.com/" + user_name
+                                + "/" + repo_name
+                                + "/raw/" + branch_name
+                        )
+                        url_full = url_root + "/" + "/".join(path[:-1]) + "/"
+                    else:  # origin_type == "web":
+                        url_root = "/".join(md_origin.split("/")[:3])
+                        url_full = md_origin.rsplit("/", 1)[0] + "/"
+                    # Create full web image path depending on weather we have an absolute relative link or just a
+                    # regular relative link:
+                    if image_src.startswith("/"):
+                        image_src = url_root + image_src
+                    else:
+                        image_src = url_full + image_src
+                    load_from_web = True
 
-        # load with a method appropriate for the type of source
-        if load_from_web:
-            try:
-                img_object = Image.open(BytesIO(requests.get(image_src).content))
-            except (OSError, PIL.UnidentifiedImageError):
-                img_object = requests.get(image_src).content
-        else:
-            try:
-                img_object = Image.open(image_src)
-            except (OSError, PIL.UnidentifiedImageError):
-                img_object = open(image_src, "rb").read()
+                elif origin_type in ("file", "string"):
+                    # get an absolute path to the image in case the image path is relative to the file location:
+                    if not os.path.isabs(image_src):
+                        # get the current directory (for relative file paths) depending on the origin_type
+                        location = os.getcwd()
+                        if origin_type == "file" and os.sep in md_origin:
+                            location = md_origin.rsplit(os.sep, 1)[0]
+                            if not os.path.abspath(location):
+                                location = os.path.join(os.getcwd(), location)
+                        image_src = os.path.join(location, image_src.replace("/", os.sep))
+                    load_from_web = False
 
-        # Utility to create a path from an image name:
-        def image_name_to_image_src(img_name):
-            return ("/" if website_root != "." else "") + image_paths + "/" + img_name
+            # load with a method appropriate for the type of source
+            if load_from_web:
+                try:
+                    img_object = Image.open(BytesIO(requests.get(image_src).content))
+                except (OSError, PIL.UnidentifiedImageError):
+                    img_object = requests.get(image_src).content
+            else:
+                try:
+                    img_object = Image.open(image_src)
+                except (OSError, PIL.UnidentifiedImageError):
+                    img_object = open(image_src, "rb").read()
 
-        # save the image:
-        try:  # determine extension:
-            extension = "." + img_object.format.lower()
-        except AttributeError:
-            extension = ".svg"
-        # ensure we use no image name twice & finally save the image:
-        save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
-                                         hash_image(img_object))  # <-- file name to save as
-        cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
-        location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-- how we call that path in the html
-        if extension != ".svg":
-            img_object.save(cached_image_path)
-        else:
-            with open(cached_image_path, "wb") as img_out_file:
-                img_out_file.write(img_object)
+            # Utility to create a path from an image name:
+            def image_name_to_image_src(img_name):
+                return ("/" if website_root != "." else "") + image_paths + "/" + img_name
 
-        # Open the final image and do compression, if it was specified to do so:
-        height = None
-        if compression_information and extension != ".svg":
-            full_image = Image.open(cached_image_path)
-            # Determine the images' width if any is specified:
-            width = (
-                int(img_soup_representation["width"].strip().replace("px", ""))
-                if img_soup_representation.has_attr("width") and img_soup_representation["width"].endswith("px")
-                else None
-            )
-            height = (
-                int(img_soup_representation["height"].strip().replace("px", ""))
-                if img_soup_representation.has_attr("height") and img_soup_representation["height"].endswith("px")
-                else None
-            )
-            if height and not width:
-                width = math_module.ceil(height * full_image.width / full_image.height)
-            # If no size is specified and srcset is set, generate a set of resolutions:
-            if compression_information["srcset"] and not width:
-                srcset = compression_information["srcset"]
-                srcset.sort()
-                srcset = list(filter((lambda x: x < full_image.width), srcset))
-                srcset.append(full_image.width)
-                # Create all the compressed images and a srcset-attribute for them:
-                srcset_attribute = str()
-                for size in srcset:
-                    srcset_attribute += image_name_to_image_src(compress_image(
+            # save the image:
+            try:  # determine extension:
+                extension = "." + img_object.format.lower()
+            except AttributeError:
+                extension = ".svg"
+            # ensure we use no image name twice & finally save the image:
+            save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
+                                             hash_image(img_object))  # <-- file name to save as
+            cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
+            location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-how we call that path in the html
+            if extension != ".svg":
+                img_object.save(cached_image_path)
+            else:
+                with open(cached_image_path, "wb") as img_out_file:
+                    img_out_file.write(img_object)
+
+            # Open the final image and do compression, if it was specified to do so:
+            height = None
+            if compression_information and extension != ".svg":
+                full_image = Image.open(cached_image_path)
+                # Determine the images' width if any is specified:
+                width = (
+                    int(img_soup_representation["width"].strip().replace("px", ""))
+                    if img_soup_representation.has_attr("width") and img_soup_representation["width"].endswith("px")
+                    else None
+                )
+                height = (
+                    int(img_soup_representation["height"].strip().replace("px", ""))
+                    if img_soup_representation.has_attr("height") and img_soup_representation["height"].endswith("px")
+                    else None
+                )
+                if height and not width:
+                    width = math_module.ceil(height * full_image.width / full_image.height)
+                # If no size is specified and srcset is set, generate a set of resolutions:
+                if compression_information["srcset"] and not width:
+                    srcset = compression_information["srcset"]
+                    srcset.sort()
+                    srcset = list(filter((lambda x: x < full_image.width), srcset))
+                    srcset.append(full_image.width)
+                    # Create all the compressed images and a srcset-attribute for them:
+                    srcset_attribute = str()
+                    for size in srcset:
+                        srcset_attribute += image_name_to_image_src(compress_image(
+                            full_image,
+                            width=size,
+                            bg_color=compression_information["bg-color"],
+                            quality=compression_information["quality"],
+                            progressive=compression_information["progressive"],
+                            base_file_name=save_image_as,
+                            file_name_addition="." + str(size) + "px",
+                            already_used_filenames=saved_image_names,
+                            abs_image_paths=abs_image_paths,
+                            hashes_to_images=hashes_to_images,
+                        )) + " " + str(size) + "w, "
+                    img_soup_representation["srcset"] = srcset_attribute  # .rsplit(" ", 2)[0] + " 3000w"
+                # If width is specified, or we just don't plan to use srcset, create only one image:
+                else:
+                    if not width:
+                        width = full_image.width
+                    save_image_as = compress_image(
                         full_image,
-                        width=size,
+                        width=width,
                         bg_color=compression_information["bg-color"],
                         quality=compression_information["quality"],
                         progressive=compression_information["progressive"],
                         base_file_name=save_image_as,
-                        file_name_addition="." + str(size) + "px",
+                        file_name_addition=".min",
                         already_used_filenames=saved_image_names,
                         abs_image_paths=abs_image_paths,
                         hashes_to_images=hashes_to_images,
-                    )) + " " + str(size) + "w, "
-                img_soup_representation["srcset"] = srcset_attribute  # .rsplit(" ", 2)[0] + " 3000w"
-            # If width is specified, or we just don't plan to use srcset, create only one image:
-            else:
-                if not width:
-                    width = full_image.width
-                save_image_as = compress_image(
-                    full_image,
-                    width=width,
-                    bg_color=compression_information["bg-color"],
-                    quality=compression_information["quality"],
-                    progressive=compression_information["progressive"],
-                    base_file_name=save_image_as,
-                    file_name_addition=".min",
-                    already_used_filenames=saved_image_names,
-                    abs_image_paths=abs_image_paths,
-                    hashes_to_images=hashes_to_images,
-                )
-        # Calculate the images max height, and add it as an attribute if it can be determined:
-        if extension != ".svg":
-            if not height:
-                height = img_object.height
-            max_height_css_information = "max-height: " + str(height) + "px;"
-            if img_soup_representation.has_attr("style"):
-                img_soup_representation["style"] = (
-                    img_soup_representation["style"].strip().rstrip(";") + "; " + max_height_css_information
-                )
-            else:
-                img_soup_representation["style"] = max_height_css_information
-        # Change src/href tags to ensure we reference the right image:
-        new_image_src = image_name_to_image_src(save_image_as)
-        img_soup_representation["src"] = new_image_src
-        img_soup_representation["data-canonical-src"] = location_of_full_sized_image
-        if img_soup_representation.parent.name == "a"\
-                and img_soup_representation.parent["href"] == original_markdown_image_src:
-            img_soup_representation.parent["href"] = location_of_full_sized_image
+                    )
+            # Calculate the images max height, and add it as an attribute if it can be determined:
+            if extension != ".svg":
+                if not height:
+                    height = img_object.height
+                max_height_css_information = "max-height: " + str(height) + "px;"
+                if img_soup_representation.has_attr("style"):
+                    img_soup_representation["style"] = (
+                        img_soup_representation["style"].strip().rstrip(";") + "; " + max_height_css_information
+                    )
+                else:
+                    img_soup_representation["style"] = max_height_css_information
+            # Change src/href tags to ensure we reference the right image:
+            new_image_src = image_name_to_image_src(save_image_as)
+            img_soup_representation["src"] = new_image_src
+            img_soup_representation["data-canonical-src"] = location_of_full_sized_image
+            if img_soup_representation.parent.name == "a"\
+                    and img_soup_representation.parent["href"] == original_markdown_image_src:
+                img_soup_representation.parent["href"] = location_of_full_sized_image
 
-    html_rendered = html_soup.__str__()
+        html_rendered = html_soup.__str__()
 
-    if DEBUG:
-        print("dict of image hashes:", hashes_to_images)
+        if DEBUG:
+            print("dict of image hashes:", hashes_to_images)
 
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
