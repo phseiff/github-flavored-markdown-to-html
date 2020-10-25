@@ -680,15 +680,19 @@ the case when inputting strings.""")
                     abs_image_paths=abs_image_paths,
                     hashes_to_images=hashes_to_images,
                 )
-        # Calculate the images max height:
-        if not height and extension != ".svg":
-            max_height_css_information = "; max-height: " + str(img_object.height) + "px;"
-        else:
-            max_height_css_information = ""
+        # Calculate the images max height, and add it as an attribute if it can be determined:
+        if extension != ".svg":
+            if not height:
+                height = img_object.height
+            max_height_css_information = "max-height: " + str(height) + "px;"
+            if img_soup_representation.has_attr("style"):
+                img_soup_representation["style"] = (
+                    img_soup_representation["style"].strip().rstrip(";") + "; " + max_height_css_information
+                )
+            else:
+                img_soup_representation["style"] = max_height_css_information
         # Change src/href tags to ensure we reference the right image:
         new_image_src = image_name_to_image_src(save_image_as)
-        img_soup_representation["style"] = img_soup_representation["style"].strip().rstrip(";")\
-                + max_height_css_information
         img_soup_representation["src"] = new_image_src
         img_soup_representation["data-canonical-src"] = location_of_full_sized_image
         if img_soup_representation.parent.name == "a"\
