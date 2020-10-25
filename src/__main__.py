@@ -529,7 +529,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         hashes_to_images[hash_image(
             Image.open(os.path.join(abs_image_paths, image_name))
             if not image_name.endswith(".svg")
-            else open(image_name, "rb").read()
+            else open(os.path.join(abs_image_paths, image_name), "rb").read()
         )] = image_name
     if DEBUG:
         print("already existent images:", saved_image_names)
