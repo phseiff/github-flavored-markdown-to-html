@@ -24,7 +24,7 @@ import hashlib
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
-HASH_FUNCTION_TO_USE_ON_IMAGES = hashlib.md5
+HASH_FUNCTION_TO_USE_ON_IMAGES = lambda x: hashlib.md5(x.encode() if type(x) is str else x)
 
 
 def open_local(path, mode):
@@ -312,16 +312,14 @@ def find_fitting_hash_function(amount_of_images):
     if amount_of_images <= 1000:
         HASH_FUNCTION_TO_USE_ON_IMAGES = hash
     else:
-        HASH_FUNCTION_TO_USE_ON_IMAGES = hashlib.md5
+        HASH_FUNCTION_TO_USE_ON_IMAGES = lambda x: hashlib.md5(x.encode() if type(x) is str else x)
 
 # Hash an image:
 
 
 def hash_image(img):
-    if type(img) is str:
-        return str(HASH_FUNCTION_TO_USE_ON_IMAGES(img.encode()).hexdigest())
-    elif type(img) is bytes:
-        return str(HASH_FUNCTION_TO_USE_ON_IMAGES(img).hexdigest())
+    if type(img) in (str, bytes):
+        return HASH_FUNCTION_TO_USE_ON_IMAGES(img)
 
     pixel_data = list()
     for pixel in list(img.getdata()):
@@ -329,7 +327,7 @@ def hash_image(img):
     pixel_data_string = str(bytes(pixel_data), encoding="iso-8859-1")
     pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
-    return str(HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string.encode()).hexdigest())
+    return HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string)
 
 
 # def test_image_hashing():
