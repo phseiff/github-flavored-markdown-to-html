@@ -1,5 +1,7 @@
 """Convert Markdown to html via python or with a command line interface."""
 
+__version__ = '1.5.13'
+
 import textwrap
 import requests
 import string
@@ -22,6 +24,8 @@ from bs4 import BeautifulSoup
 import io
 import hashlib
 import math as math_module
+import shutil
+from .latex2svg import latex2svg
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
@@ -121,6 +125,46 @@ def find_and_replace_formulas_in_markdown(md: str, replace_formulas=True):
 
     return "\n".join(md_lines), formulas, special_characters_in_code
 
+# Function to convert latex formulas to svg with offline method if possible:
+
+
+if shutil.which("latex") and shutil.which("dvisvgm"):
+    def raw_formula2svg(formula):
+        return latex2svg(formula)["svg"]
+else:
+    formula2svg_client = requests.session()
+
+    def raw_formula2svg(formula):
+        return formula2svg_client.get(
+            url="https://latex.codecogs.com/svg.latex?" + quote(formula)
+        ).text
+
+# Function to convert latex formulas to svg:
+
+
+def formula2svg(formula, amount_of_svg_formulas):
+    """Takes a LaTeX-Formula and converts it to a svg."""
+    formula_rendered = raw_formula2svg(formula)
+    svg_re_pattern = re.compile(r"""<path[^>]+id\s*=\s*['\"]([^'\"]+)['\"][^>]*>""")
+    svg_path_ids = [path_id for path_id in svg_re_pattern.findall(formula_rendered)]
+    for svg_path_id in svg_path_ids:
+        # ToDo: Do this replacement-stuff with beautiful soup (or maybe not, for performance reasons? hm...)
+        new_svg_path_id = svg_path_id + "n" + str(amount_of_svg_formulas)
+        formula_rendered = formula_rendered.replace("id='" + svg_path_id + "'", "id='" + new_svg_path_id + "'")
+        formula_rendered = formula_rendered.replace("xlink:href='#" + svg_path_id + "'", "xlink:href='#"
+                                                    + new_svg_path_id + "'")
+    if DEBUG:
+        print(" ---    FORMULA:", formula, " --- quoted:", quote(formula), " --- url:",
+              "https://latex.codecogs.com/svg.latex?" + quote(formula), " --- svg-paths:", svg_path_ids)
+    formula_rendered = formula_rendered.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[-1]
+    formula_rendered = formula_rendered.replace('<path', '<path class="formula"')
+    formula_rendered = formula_rendered.replace('<svg',
+                                                '<svg style="vertical-align: middle" class="gh-md-to-html-formula')
+
+    return formula_rendered
+
+# Find and render formulas in the html code, and replace them correctly:
+
 
 def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_characters_in_code: dict):
     """Takes some html (generated from markdown by the online github API) and a dictionary which maps a number of
@@ -129,25 +173,9 @@ def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_cha
     """
 
     # replace formulas:
-    client = requests.session()
-    svg_re_pattern = re.compile(r"""<path[^>]+id\s*=\s*['\"]([^'\"]+)['\"][^>]*>""")
     amount_of_svg_formulas = 0
     for sequence, formula in formulas.items():
-        formula_rendered = client.get(
-            url="https://latex.codecogs.com/svg.latex?" + quote(formula)
-        ).text
-        svg_path_ids = [path_id for path_id in svg_re_pattern.findall(formula_rendered)]
-        for svg_path_id in svg_path_ids:
-            new_svg_path_id = svg_path_id + "n" + str(amount_of_svg_formulas)
-            formula_rendered = formula_rendered.replace("id='" + svg_path_id + "'", "id='" + new_svg_path_id + "'")
-            formula_rendered = formula_rendered.replace("xlink:href='#" + svg_path_id + "'", "xlink:href='#"
-                                                        + new_svg_path_id + "'")
-        if DEBUG:
-            print(" ---    FORMULA:", formula, " --- quoted:", quote(formula), " --- url:",
-                  "https://latex.codecogs.com/svg.latex?" + quote(formula), " --- svg-paths:", svg_path_ids)
-        formula_rendered = formula_rendered.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[-1]
-        formula_rendered = formula_rendered.replace('<svg', '<svg style="vertical-align: middle"')
-        formula_rendered = formula_rendered.replace('<path', '<path class="formula"')
+        formula_rendered = formula2svg(formula, amount_of_svg_formulas)
         html_text = html_text.replace(
             sequence,
             formula_rendered
@@ -410,15 +438,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         image_paths = destination + (os.sep if destination else "") + "images"
     if css_paths is None:
         css_paths = "github-markdown-css"
-    if formulas_supporting_darkreader in ("false", False):
-        darkreader_src = ""
-        formulas_supporting_darkreader = False
-    elif formulas_supporting_darkreader in ("true", True):
-        darkreader_src = "*darkreader.js"
-        formulas_supporting_darkreader = True
-    else:
-        darkreader_src = formulas_supporting_darkreader
-        formulas_supporting_darkreader = True
 
     # set all to paths instead of paths relative to website_root:
     abs_website_root = ("/" if not website_root.startswith(".") else "") + website_root
@@ -503,14 +522,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
     if DEBUG:
         print("\n------------\nHtml rendered:\n------------\n\n", html_rendered)
-
-    # ensure darkreader is supported if we have formulas:
-    if formulas_supporting_darkreader and formula_mapper:
-        with open_local("svg-color-changer.html", "r") as f:
-            html_rendered += "\n\n" + f.read().replace("{script_name}", darkreader_src)
-
-    if DEBUG:
-        print("\n------------\nHtml rendered (with darkreader support):\n------------\n\n", html_rendered)
 
     # find the images referenced within the file:
     # images = [
@@ -881,11 +892,9 @@ if __name__ == "__main__":
     If set to True, which is the default, LaTeX-formulas using $formula$-notation will be rendered.""")
 
     parser.add_argument('-r', '--formulas-supporting-darkreader', default="false", type=bool, help="""
-    If set to true, formulas will be shown light if the darkreader .js library is included in the html and the
-    user prefers darkmode. This is checked by looking for a script embedded from a src ending with "darkreader.js" and
-    by checking the prefers-color-scheme option in the browser. You can also supply any other script src to look for.
-    Please note that this won't have any effect unless you inject the darkreader .js library into the generated html;
-    doing so is not included in this module.""")
+    THIS OPTION IS DEPRECATED. It used to hackishly ensure that darkreader (the js module as well as the browser
+    extension) correctly shift the colors of embedded formulas according to darkreader's colorscheme (usually, dark).
+    This is not necessary anymore because this is ALWAYS supported now, and in a clean way without any dirty hack.""")
 
     parser.add_argument('-x', '--extra-css', nargs="+", action=FuseInputString, help="""
     A path to a file containing additional css to embed into the final html, as an absolute path or relative to the
