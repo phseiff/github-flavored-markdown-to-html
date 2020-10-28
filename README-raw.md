@@ -39,7 +39,7 @@ Advantages include:
 * Tested and optimized to look good when using [DarkReader](https://github.com/darkreader/darkreader) (the
   .js-module as well as the browser extension). This is especially relevant considering that DarkReader doesn't usually
   shift the colors of svg images, and the formulas added by gh-md-to-html's formula support are embedded as inline svg.
-  gh-md-to-html ensured that even the formulas are the same color as the text, shifted in accordance with DarkReader's
+  gh-md-to-html ensured that the formulas are the same color as the text, shifted in accordance with DarkReader's
   current/enabled colorscheme.
 * Supports umlauts and other non-ascii-characters in plain text as well as in multiline code blocks, which the github
   REST api usually doesn't.
