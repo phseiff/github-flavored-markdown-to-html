@@ -127,7 +127,7 @@ def find_and_replace_formulas_in_markdown(md: str, replace_formulas=True):
 # Decide which function to convert latex formulas to svg is preferable:
 
 
-formula2svg_client = requests.session()
+formula2svg_client = None
 
 
 def raw_formula2svg_offline(formula):
@@ -154,6 +154,8 @@ else:
 
 def formula2svg(formula, amount_of_svg_formulas):
     """Takes a LaTeX-Formula and converts it to a svg."""
+    global formula2svg_client
+    formula2svg_client = requests.session()
     formula_rendered = raw_formula2svg(formula)
     formula_rendered_soup = BeautifulSoup(formula_rendered, 'html.parser')
 
