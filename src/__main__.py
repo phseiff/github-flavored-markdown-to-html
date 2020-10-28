@@ -1,6 +1,6 @@
 """Convert Markdown to html via python or with a command line interface."""
 
-__version__ = '1.5.13'
+__version__ = '1.6.0'
 
 import textwrap
 import requests
@@ -20,6 +20,7 @@ import subprocess
 import json
 import webcolors
 from ast import literal_eval as make_tuple
+import bs4
 from bs4 import BeautifulSoup
 import io
 import hashlib
@@ -156,23 +157,32 @@ else:
 def formula2svg(formula, amount_of_svg_formulas):
     """Takes a LaTeX-Formula and converts it to a svg."""
     formula_rendered = raw_formula2svg(formula)
-    svg_re_pattern = re.compile(r"""<path[^>]+id\s*=\s*['\"]([^'\"]+)['\"][^>]*>""")
-    svg_path_ids = [path_id for path_id in svg_re_pattern.findall(formula_rendered)]
-    for svg_path_id in svg_path_ids:
-        # ToDo: Do this replacement-stuff with beautiful soup (or maybe not, for performance reasons? hm...)
-        new_svg_path_id = svg_path_id + "n" + str(amount_of_svg_formulas)
-        formula_rendered = formula_rendered.replace("id='" + svg_path_id + "'", "id='" + new_svg_path_id + "'")
-        formula_rendered = formula_rendered.replace("xlink:href='#" + svg_path_id + "'", "xlink:href='#"
-                                                    + new_svg_path_id + "'")
+    formula_rendered_soup = BeautifulSoup(formula_rendered, 'html.parser')
+
+    # Remove xml declaration:
+    for e in formula_rendered_soup:
+        if isinstance(e, bs4.element.ProcessingInstruction) or isinstance(e, bs4.Comment):
+            e.extract()
+
+    # Add style and class to svg element:
+    svg_element_soup_representation = formula_rendered_soup.find("svg")
+    svg_element_soup_representation["class"] = "gh-md-to-html-formula"
+    svg_element_soup_representation["style"] = "vertical-align: middle;"
+
+    # Correct all elements with path attribute:
+    for element_with_id_soup_representation in formula_rendered_soup.find_all(lambda tag: tag.has_attr("id")):
+        element_with_id_soup_representation["id"] += "n" + str(amount_of_svg_formulas)
+
+    # Correct every reference to them:
+    for element_referencing_id_soup_representation in formula_rendered_soup.find_all(
+            lambda tag: tag.has_attr("xlink:href")):
+        element_referencing_id_soup_representation["xlink:href"] += "n" + str(amount_of_svg_formulas)
+
     if DEBUG:
         print(" ---    FORMULA:", formula, " --- quoted:", quote(formula), " --- url:",
-              "https://latex.codecogs.com/svg.latex?" + quote(formula), " --- svg-paths:", svg_path_ids)
-    formula_rendered = formula_rendered.split("<?xml version='1.0' encoding='UTF-8'?>", 1)[-1]
-    formula_rendered = formula_rendered.replace('<path', '<path class="formula"')
-    formula_rendered = formula_rendered.replace('<svg',
-                                                '<svg style="vertical-align: middle" class="gh-md-to-html-formula')
+              "https://latex.codecogs.com/svg.latex?" + quote(formula))
 
-    return formula_rendered
+    return formula_rendered_soup.__str__()
 
 # Find and render formulas in the html code, and replace them correctly:
 
