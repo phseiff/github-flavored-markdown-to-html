@@ -147,7 +147,7 @@ if shutil.which("latex") and shutil.which("dvisvgm"):
     except (RuntimeError, subprocess.CalledProcessError):
         raw_formula2svg = raw_formula2svg_online
 else:
-    raw_formula2svg = raw_formula2svg_offline
+    raw_formula2svg = raw_formula2svg_online
 
 # Function to convert latex formulas to svg:
 
