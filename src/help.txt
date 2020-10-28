@@ -6,7 +6,6 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-n OUTPUT_NAME [OUTPUT_NAME ...]]
                    [-p OUTPUT_PDF [OUTPUT_PDF ...]] [-s STYLE_PDF]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
-                   [-r FORMULAS_SUPPORTING_DARKREADER]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
                    [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    [-e COMPRESS_IMAGES [COMPRESS_IMAGES ...]]
@@ -85,14 +84,6 @@ optional arguments:
                         altogether.
   -m MATH, --math MATH  If set to True, which is the default, LaTeX-formulas
                         using $formula$-notation will be rendered.
-  -r FORMULAS_SUPPORTING_DARKREADER, --formulas-supporting-darkreader FORMULAS_SUPPORTING_DARKREADER
-                        THIS OPTION IS DEPRECATED. It used to hackishly ensure
-                        that darkreader (the js module as well as the browser
-                        extension) correctly shift the colors of embedded
-                        formulas according to darkreader's colorscheme (usually,
-                        dark). This is not necessary anymore because this is
-                        ALWAYS supported now, and in a clean way without any
-                        dirty hack.
   -x EXTRA_CSS [EXTRA_CSS ...], --extra-css EXTRA_CSS [EXTRA_CSS ...]
                         A path to a file containing additional css to embed into
                         the final html, as an absolute path or relative to the

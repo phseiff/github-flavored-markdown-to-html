@@ -125,19 +125,30 @@ def find_and_replace_formulas_in_markdown(md: str, replace_formulas=True):
 
     return "\n".join(md_lines), formulas, special_characters_in_code
 
-# Function to convert latex formulas to svg with offline method if possible:
+# Decide which function to convert latex formulas to svg is preferable:
+
+
+formula2svg_client = requests.session()
+
+
+def raw_formula2svg_offline(formula):
+    return latex2svg(formula)["svg"]
+
+
+def raw_formula2svg_online(formula):
+    return formula2svg_client.get(
+        url="https://latex.codecogs.com/svg.latex?" + quote(formula)
+    ).text
 
 
 if shutil.which("latex") and shutil.which("dvisvgm"):
-    def raw_formula2svg(formula):
-        return latex2svg(formula)["svg"]
+    try:
+        raw_formula2svg_offline("w")
+        raw_formula2svg = raw_formula2svg_offline
+    except (RuntimeError, subprocess.CalledProcessError):
+        raw_formula2svg = raw_formula2svg_online
 else:
-    formula2svg_client = requests.session()
-
-    def raw_formula2svg(formula):
-        return formula2svg_client.get(
-            url="https://latex.codecogs.com/svg.latex?" + quote(formula)
-        ).text
+    raw_formula2svg = raw_formula2svg_offline
 
 # Function to convert latex formulas to svg:
 
@@ -807,6 +818,7 @@ Use this function like the command line interface:
 
 # Some doctests:
 
+
 def _test():
     import doctest
     doctest.testmod()
@@ -891,10 +903,12 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--math', default="true", help="""
     If set to True, which is the default, LaTeX-formulas using $formula$-notation will be rendered.""")
 
-    parser.add_argument('-r', '--formulas-supporting-darkreader', default="false", type=bool, help="""
-    THIS OPTION IS DEPRECATED. It used to hackishly ensure that darkreader (the js module as well as the browser
-    extension) correctly shift the colors of embedded formulas according to darkreader's colorscheme (usually, dark).
-    This is not necessary anymore because this is ALWAYS supported now, and in a clean way without any dirty hack.""")
+    if "-r" in sys.argv or "--formulas-supporting-darkreader" in sys.argv:
+        parser.add_argument('-r', '--formulas-supporting-darkreader', default="false", type=bool, help="""
+        THIS OPTION IS DEPRECATED. It used to hackishly ensure that darkreader (the js module as well as the browser
+        extension) correctly shift the colors of embedded formulas according to darkreader's colorscheme (usually,
+        dark). This is not necessary anymore because this is ALWAYS supported now, and in a clean way without any dirty
+        hack. The help text is disabled, but remains in the source code for future reference.""")
 
     parser.add_argument('-x', '--extra-css', nargs="+", action=FuseInputString, help="""
     A path to a file containing additional css to embed into the final html, as an absolute path or relative to the
