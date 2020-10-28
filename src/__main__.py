@@ -1,7 +1,5 @@
 """Convert Markdown to html via python or with a command line interface."""
 
-__version__ = '1.6.0'
-
 import textwrap
 import requests
 import string
