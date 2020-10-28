@@ -1,5 +1,7 @@
 # github-flavored-markdown-to-html
 
+> aka *gh-md-to-html*
+
 <!-- [![HitCount](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html.svg)](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html) -->
 [![PyPI download total](https://img.shields.io/pypi/dm/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
@@ -28,14 +30,17 @@ Advantages include:
 * Creates all links as root-relative hyperlinks and lets you specify the root directory
   as well as the locations for css and images, but uses smart standard values for
   everything.
-* Supports inline LaTeX-formulas (use `$`-formula-`$` to use them), which GitHub usually
-  doesn't (this is done using the [Codecogs EqnEditor](https://latex.codecogs.com/)).
+* Supports inline LaTeX-formulas (use `$`-formula-`$` to use them), which GitHub usually doesn't. gh-md-to-html uses
+  [LaTeX](https://www.tug.org/texlive/) and [dvisvgm](https://dvisvgm.de/) if they are both installed (advantage: fast,
+  requires no internet), and otherwise the [Codecogs EqnEditor](https://latex.codecogs.com/) (advantage: doesn't require
+  you to install 3 GB of LaTeX libraries) to achieve this.
 * Supports exporting to pdf with or without Github styling, using the
   [pdfkit](https://pypi.org/project/pdfkit/) python module (if it is installed).
-* Tested and optimized to look good when using
-  [Darkreader](https://github.com/darkreader/darkreader) (the
-  .js-module, not necessarily the browser extension. This means that formulas are displayed
-  with a light text when in darkmode, amongst other things).
+* Tested and optimized to look good when using [DarkReader](https://github.com/darkreader/darkreader) (the
+  .js-module as well as the browser extension). This is especially relevant considering that DarkReader doesn't usually
+  shift the colors of svg images, and the formulas added by gh-md-to-html's formula support are embedded as inline svg.
+  gh-md-to-html ensured that even the formulas are the same color as the text, shifted in accordance with DarkReader's
+  current/enabled colorscheme.
 * Supports umlauts and other non-ascii-characters in plain text as well as in multiline code blocks, which the github
   REST api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
@@ -130,7 +135,6 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-n OUTPUT_NAME [OUTPUT_NAME ...]]
                    [-p OUTPUT_PDF [OUTPUT_PDF ...]] [-s STYLE_PDF]
                    [-f FOOTER [FOOTER ...]] [-m MATH]
-                   [-r FORMULAS_SUPPORTING_DARKREADER]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
                    [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    [-e COMPRESS_IMAGES [COMPRESS_IMAGES ...]]
@@ -209,14 +213,6 @@ optional arguments:
                         altogether.
   -m MATH, --math MATH  If set to True, which is the default, LaTeX-formulas
                         using $formula$-notation will be rendered.
-  -r FORMULAS_SUPPORTING_DARKREADER, --formulas-supporting-darkreader FORMULAS_SUPPORTING_DARKREADER
-                        THIS OPTION IS DEPRECATED. It used to hackishly ensure
-                        that darkreader (the js module as well as the browser
-                        extension) correctly shift the colors of embedded
-                        formulas according to darkreader's colorscheme (usually,
-                        dark). This is not necessary anymore because this is
-                        ALWAYS supported now, and in a clean way without any
-                        dirty hack.
   -x EXTRA_CSS [EXTRA_CSS ...], --extra-css EXTRA_CSS [EXTRA_CSS ...]
                         A path to a file containing additional css to embed into
                         the final html, as an absolute path or relative to the
