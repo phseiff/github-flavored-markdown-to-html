@@ -25,7 +25,7 @@ Advantages include:
 * Pulls any images referenced in the markdown files from the web/ your local storage and
   places them in a directory relative to your specified website root, so the resulting file structure is host-ready for
   static sites. Multiple arguments allow the customization of the saving locations, but the images will always be
-  referenced correctly in the resulting html files.
+  referenced correctly in the resulting html files. This is especially useful since it reflects GitHub's behavior to serve cached copies of README-images instead of linking to them directly, reducing tracking and possibly downscaling overlarge images in the process.
 * Creates all links as root-relative hyperlinks and lets you specify the root directory
   as well as the locations for css and images, but uses smart standard values for
   everything.
