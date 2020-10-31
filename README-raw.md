@@ -1,6 +1,4 @@
-# github-flavored-markdown-to-html
-
-> aka *gh-md-to-html*
+![gh-md-to-html, aka gh-md-to-html](docs/header.svg)
 
 <!-- [![HitCount](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html.svg)](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html) -->
 [![PyPI download total](https://img.shields.io/pypi/dm/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
@@ -187,8 +185,24 @@ This tool is already used by
 
 * [myself](https://github.com/phseiff) (for homework assignments in pdf-format four times a week, so you can rest assured that yes, the person
   maintaining it is also using it themselves)
+  
+* [my website](https://phseiff.com) (uses it in its website builder)
+
 * feel free to drop an issue if you want to be included in this list!
 
+## Attribution
+
+The icons were made by
+
+* .md-file.icon: [Freepik](https://www.flaticon.com/authors/freepik) from [flaticon.com](https://www.flaticon.com/)
+
+* .md-file.icon: [Freepik](https://www.flaticon.com/authors/freepik) from [flaticon.com](https://www.flaticon.com/)
+
+* arrow-icon: [Font Awesome by Dave Gandy](https://fortawesome.github.com/Font-Awesome), licensed under
+  [Creative Commons](https://en.wikipedia.org/wiki/en:Creative_Commons)
+  [Attribution-Share Alike 3.0 Unported](https://creativecommons.org/licenses/by-sa/3.0/deed.en)
+
+* GitHub-icon: [GitHub icon](https://iconscout.com/icons/github) on [Iconscout](https://iconscout.com/)
 ----
 
 **DISCLAIMER**: This module is neither written by Github, nor is it endorsed with Github,
