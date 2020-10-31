@@ -6,6 +6,8 @@
 [![PyPI version shields.io](https://img.shields.io/pypi/v/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
 [![GitHub license](https://img.shields.io/github/license/phseiff/github-flavored-markdown-to-html.svg)](https://github.com/phseiff/github-flavored-markdown-to-html/blob/master/LICENSE.txt)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/phseiff/github-flavored-markdown-to-html.svg)](http://isitmaintained.com/project/phseiff/github-flavored-markdown-to-html)
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/phseiff/github-flavored-markdown-to-html.svg)](http://isitmaintained.com/project/phseiff/github-flavored-markdown-to-html)
 <!-- ![Health measured by landscape.io](https://landscape.io/github/phseiff/github-flavored-markdown-to-html/master/landscape.png) -->
 
 A user-friendly python-module and command-line frontend to convert markdown to html. It uses
