@@ -1,5 +1,4 @@
 [![brought to you by phseiff](https://phseiff.com/images/brought-to-you-by-phseiff.svg)](https://github.com/phseiff)
-
 [![github flavored markdown to html, aka gh-md-to-html](docs/header.svg)](https://github.com/phseiff/github-flavored-markdown-to-html)
 
 <!-- [![HitCount](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html.svg)](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html) -->
