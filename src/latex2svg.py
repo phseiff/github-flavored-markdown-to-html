@@ -21,7 +21,7 @@ default_template = r"""
 {{ preamble }}
 \begin{document}
 \begin{preview}
-{{ code }}
+${{ code }}$
 \end{preview}
 \end{document}
 """
@@ -95,7 +95,11 @@ def latex2svg(code, params=default_params, working_directory=None):
         ret = subprocess.run(shlex.split(params['latex_cmd']+' code.tex'),
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              cwd=working_directory)
-        ret.check_returncode()
+        try:
+            ret.check_returncode()
+        except subprocess.CalledProcessError:
+            raise Exception("LaTeX failed with error:", str(ret.stderr, encoding="UTF-8"),
+                            "\nThis happened whilst rendering formula $" + code + "$.")
     except FileNotFoundError:
         raise RuntimeError('latex not found')
 
@@ -109,7 +113,12 @@ def latex2svg(code, params=default_params, working_directory=None):
         ret = subprocess.run(shlex.split(params['dvisvgm_cmd']+' code.dvi'),
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              cwd=working_directory, env=env)
-        ret.check_returncode()
+        try:
+            ret.check_returncode()
+        except subprocess.CalledProcessError:
+            raise Exception("dvisvgm failed with error:", str(ret.stderr, encoding="UTF-8"),
+                            "\nThis happened whilst rendering formula $" + code + "$.")
+
     except FileNotFoundError:
         raise RuntimeError('dvisvgm not found')
 
