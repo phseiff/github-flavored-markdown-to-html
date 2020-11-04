@@ -17,6 +17,7 @@ for command in [
     "git add *",
     "git commit -m \"" + sys.argv[1] + "\"",
     "git push",
+    "pip3 install ."
 ]:
     print("command:", command)
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)

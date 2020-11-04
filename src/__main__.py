@@ -1,6 +1,8 @@
 """Convert Markdown to html via python or with a command line interface."""
 
 import textwrap
+import urllib
+
 import requests
 import string
 import random
@@ -766,31 +768,20 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             raise Exception("""\
 Unfortunately, you need to have pdfkit installed to save as pdf. Find out how to install it here:
 https://pypi.org/project/pdfkit/""")
-        # ensure the image links are absolute
-        links_in_general = [
-                               str(image, encoding="UTF-8") for image in
-                               re.compile(rb'src="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-                           ] + [
-                               str(image, encoding="UTF-8") for image in
-                               re.compile(rb'href="([^"]+)').findall(bytes(html_rendered, encoding="UTF-8"))
-                           ]
-        absolute_relative_links = [link[1:] for link in links_in_general if link.startswith("/")]
-        relative_links = [link for link in links_in_general if not link.startswith("/")]
-        links = absolute_relative_links + relative_links
-        links = filter(lambda link: not (link.startswith("https://") or link.startswith("http://")), links)
-
-        for link in links:
-            abs_path = os.path.join(os.getcwd(), abs_website_root.lstrip("/"), link)
-            if abs_path[1:3] == ":\\":  # <-- special treatment for windows paths
-                abs_path = (abs_path[0].lower() + "/" + abs_path[3:]).replace("\\", "/")
-            abs_path = "file://" + abs_path
-
-            if link in absolute_relative_links:
-                html_rendered = html_rendered.replace('src="/' + link, 'src="' + abs_path)
-                html_rendered = html_rendered.replace('href="/' + link, 'href="' + abs_path)
-            elif link in relative_links:
-                html_rendered = html_rendered.replace('src="' + link, 'src="' + abs_path)
-                html_rendered = html_rendered.replace('href="' + link, 'href="' + abs_path)
+        # ensure the image links are absolute file paths:
+        # ToDo: Completely disable pdf conversion on windows machines, since wkhtmltopdf won't run on them anyways.
+        html_soup_representation = BeautifulSoup(html_rendered, parser="html.parser")
+        for link_type in ("src", "href"):
+            tags_with_links = html_soup_representation.find_all(lambda tag: tag.has_attr(link_type))
+            for tag_with_link in tags_with_links:
+                link = tag_with_link[link_type]
+                if link.startswith("https://") or link.startswith("http://"):
+                    pass
+                else:
+                    directory_to_link_to = abs_website_root if link.startswith("/") else abs_destination
+                    abs_path = urllib.parse.quote(os.path.join(os.getcwd(), directory_to_link_to.lstrip("/"), link))
+                    tag_with_link[link_type] = "file://" + abs_path
+        html_rendered = html_soup_representation.__str__()
 
         # remove the css if we want to save it without css:
         if not style_pdf:
@@ -805,14 +796,14 @@ https://pypi.org/project/pdfkit/""")
         # Finally convert it:
         # (this saving and then converting ensures we don't convert links like https:foo to
         # absolute_path_to_file_location/https://foo)
-        with open(os.path.join(abs_destination, output_name + ".html"), "w+") as f:
+        with open(os.path.join(abs_destination, output_pdf + ".html"), "w+") as f:
             f.write(html_rendered)
         pdfkit.from_file(
-            os.path.join(abs_destination, output_name + ".html"),
+            os.path.join(abs_destination, output_pdf + ".html"),
             os.path.join(destination, output_pdf),
             options=dict() if DEBUG else {'quiet': ''},
         )
-        os.remove(os.path.join(abs_destination, output_name + ".html"))
+        os.remove(os.path.join(abs_destination, output_pdf + ".html"))
 
     # return the result
     return html_rendered
