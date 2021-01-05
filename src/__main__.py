@@ -498,7 +498,14 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
     # request markdown-to-html-conversion from our preferred method:
 
-    if type(core_converter) is str:  # execute the command:
+    if core_converter in ("OFFLINE", "OFFLINE+"):
+        from . import core_converter as cc
+        if core_converter == "OFFLINE":
+            cc.INTERNAL_USE = False
+        else:
+            cc.INTERNAL_USE = True
+        html_content = cc.markdown(md_content)
+    elif type(core_converter) is str:  # execute the command:
         out = subprocess.Popen(
             core_converter.format(md=shellescape.quote(md_content)),
             stdout=subprocess.PIPE,
@@ -930,6 +937,11 @@ if __name__ == "__main__":
       escaped version of the markdown file's content, and which returns the finished html. Please note that commands for
       Unix-system won't work on Windows systems, and vice versa etc.
     * when using gh-md-to-html in python: A callable which converts markdown to html, or a string as described above.
+    * OFFLINE as a value to indicate that gh-md-to-html should imitate the output of their builtin md-to-html-converter
+      using mistune. This requires the optional dependencies for "offline_conversion" to be satisfied.
+    * OFFLINE+ behaves identical to OFFLINE, but it doesn't remove potentially harmfull content like javascript and css
+      like the GitHub REST API usually does. DO NOT USE THIS FEATURE unless you need a way to convert secure
+      manually-checked markdown files without having all your inline js stripped away!
     """)
 
     parser.add_argument('-e', '--compress-images', nargs="+", action=FuseInputString, help="""

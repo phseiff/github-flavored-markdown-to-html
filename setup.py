@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='gh_md_to_html',
-    version='1.6.4',
+    version='1.7.0',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -19,7 +19,8 @@ setup(
     install_requires=open("requirements.txt", "r").read().splitlines(),
     license="LICENSE.txt",
     extras_require={
-        'pdf_export': ["pdfkit"]
+        'pdf_export': ["pdfkit"],
+        'offline_conversion': ["mistune", "pygments"]
     },
     classifiers=[
         "Programming Language :: Python :: 3",

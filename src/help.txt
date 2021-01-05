@@ -112,7 +112,18 @@ optional arguments:
                         and vice versa etc. 
                         * when using gh-md-to- html in python: A callable which
                         converts markdown to html, or a string as described
-                        above.
+                        above. 
+                        * OFFLINE as a value to indicate that gh-md-to-html
+                        should imitate the output of their builtin
+                        md-to-html-converter using mistune. This requires the
+                        optional dependencies for "offline_conversion" to be
+                        satisfied. 
+                        * OFFLINE+ behaves identical to OFFLINE, but it doesn't
+                        remove potentially harmfull content like javascript and
+                        css like the GitHub REST API usually does. DO NOT USE
+                        THIS FEATURE unless you need a way to convert secure
+                        manually-checked markdown files without having all your
+                        inline js stripped away!
   -e COMPRESS_IMAGES [COMPRESS_IMAGES ...], --compress-images COMPRESS_IMAGES [COMPRESS_IMAGES ...]
                         Reduces load time of the generated html by saving all
                         images referenced by the given markdown file as jpeg.

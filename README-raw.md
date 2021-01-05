@@ -12,8 +12,8 @@
 
 A user-friendly python-module and command-line frontend to convert markdown to html. It uses
 [GitHubs online Markdown-to-html-API](https://docs.github.com/en/rest/reference/markdown) by default (which requires
-internet connection), but any other python- or commandline tool can be plugged into it as well. Whatever you use it
-with is automatically extended with a ton of functionality, like more in- and output options,
+internet connection), but comes with an option for offline conversion (which closely imitates GitHubs behavior), and any other python- or commandline tool can be plugged into it as well.
+Whatever you use it with is automatically extended with a ton of functionality, like more in- and output options,
 [github-flavored CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css), formula
 support, image downloading, host-ready file- and image-placement, pdf-conversion, and more.
 
@@ -56,6 +56,7 @@ Advantages include:
 * If two equal images from equal or different sources are referenced in the given markdown file, and both would be saved
   in the same resolution et cetera, both are pointed to the same copy in the generated html to minimize loading
   overhead.
+* Comes with an option to closely imitate GitHub's markdown-to-html-conversion behavior offline!
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
@@ -121,6 +122,15 @@ import gh_md_to_html
 
 and then use `gh_md_to_html.main()` with the same arguments (and default values) you would
 supply to the command line interface.
+
+If you only want to imitate the conversion results yield by GitHub's REST API offline, but don't want image caching,
+formula support and fancy CSS styling, use
+
+```
+html_as_a_string = gh_md_to_html.core_converter.markdown(your_markdown_as_a_string)
+```
+
+in Python.
 
 ### Documentation
 
