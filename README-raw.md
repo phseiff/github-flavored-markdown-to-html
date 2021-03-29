@@ -47,7 +47,7 @@ Advantages include:
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
 * Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
-  original images) with a specified background color (default is white) for converting RGB to RGBA, and a specified
+  original images) with a specified background color (default is white) for converting RGBA to RGB, and a specified
   compression rate (default is 90). Images with a specified width or height attribute in pixels get scaled down to that
   size to reduce loading time. This helps severely reduce the size of generated pages for markdown files with lots of
   images. There is also an option to save all images in multiple sizes and let the html viewer/browser pick the one
@@ -192,6 +192,12 @@ contain whitespaces. Otherwise, the markdown code to embed the image will be sho
 resulting html/pdf instead of being replaced with an image. I will eventually get to change this; if you want this to
 be done ASAP, feel free to drop a comment under the corresponding issue, and I will get to work on it ASAP.
 
+## Feedback
+
+As with all of my projects, feedback (even if it is just something small like telling me your use case for my project, or telling me that you didn't like the README's structure, or telling me that you specifically liked one specific feature) is much appreciated, and helps me make this project better, even if it's something very tiny!
+You can just drop an issue with your feedback, short and non-formal, or even email me if you don't want to raise an issue for some reason.
+I do not plan on adding features in the future at the moment, but I am always open to fixing and tweaking existing features, documentation et cetera, and I would obviously love to hear your feature suggestions even if I do not plan on adding them in the near future.
+
 ## Known Usages
 
 This tool is already used by
@@ -201,7 +207,15 @@ This tool is already used by
   
 * [my website](https://phseiff.com) (uses it in its website builder)
 
-* feel free to drop an issue if you want to be included in this list!
+* feel free to tell me via an issue if you want to be included in this list!
+
+## Further reading
+
+* I wrote a small write-up on Reddit about gh-md-to-html, which doesn't really say anything that isn't somehow said in this README already, but might be an easier read:
+  
+  [link](https://www.reddit.com/r/Markdown/comments/lyivyg/ghmdtohtml_convert_githubflavored_markdown_to/)
+
+* If you are aware of any other mentions or discussions regarding gh-md-to-html, feel free to tell me so I can include them!
 
 ## Attribution
 
