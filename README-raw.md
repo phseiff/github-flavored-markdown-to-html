@@ -204,17 +204,13 @@ This tool is already used by
 
 * [myself](https://github.com/phseiff) (for homework assignments in pdf-format four times a week, so you can rest assured that yes, the person
   maintaining it is also using it themselves)
-  
 * [my website](https://phseiff.com) (uses it in its website builder)
-
 * feel free to tell me via an issue if you want to be included in this list!
 
 ## Further reading
 
 * I wrote a small write-up on Reddit about gh-md-to-html, which doesn't really say anything that isn't somehow said in this README already, but might be an easier read:
-  
   [link](https://www.reddit.com/r/Markdown/comments/lyivyg/ghmdtohtml_convert_githubflavored_markdown_to/)
-
 * If you are aware of any other mentions or discussions regarding gh-md-to-html, feel free to tell me so I can include them!
 
 ## Attribution
