@@ -749,6 +749,18 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
 
+    # ensure <a href="#fufu"> gets converted to <a href="#user-content-fufu">:
+    html_soup = BeautifulSoup(html_rendered, 'html.parser')
+    for link_soup_representation in html_soup.find_all("a"):
+        link_location = link_soup_representation.get("href")
+        if link_location.startswith("#"):
+            link_location = "#user-content-" + link_location[1:]
+        link_soup_representation["href"] = link_location
+    html_rendered = html_soup.__str__()
+
+    if DEBUG:
+        print("\n------------\nHtml with fixed internal links:\n------------\n\n", html_rendered)
+
     # ensure we have the css and the code navigation banner where we want it to be:
     with open_local("github-css.min.css", "r") as from_f:
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
@@ -865,7 +877,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-w', '--website-root', nargs="+", action=FuseInputString, help="""
     Only relevant if you are creating the html for a static website which you manage using git or something similar.
-    --html-root is the directory from which you serve your website (which is needed to correctly generate the links
+    --website-root is the directory from which you serve your website (which is needed to correctly generate the links
     within the generated html, such as the link pointing to the css, since they are all root-relative),
     and can be a relative as well as an absolute path. Defaults to the directory you called this script from.
     If you intent to view the html file on your laptop instead of hosting it on a static site, website-root should be

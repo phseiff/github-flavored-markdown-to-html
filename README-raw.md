@@ -1,5 +1,5 @@
 [![brought to you by phseiff](https://phseiff.com/images/brought-to-you-by-phseiff.svg)](https://github.com/phseiff)
-[![github flavored markdown to html, aka gh-md-to-html](docs/header.svg)](https://github.com/phseiff/github-flavored-markdown-to-html)
+[![github flavored markdown to html, aka gh-md-to-html](https://raw.githubusercontent.com/phseiff/github-flavored-markdown-to-html/master/docs/header.svg)](https://github.com/phseiff/github-flavored-markdown-to-html)
 
 <!-- [![HitCount](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html.svg)](http://hits.dwyl.com/phseiff/github-flavored-markdown-to-html) -->
 [![PyPI download total](https://img.shields.io/pypi/dm/gh-md-to-html.svg)](https://pypi.python.org/pypi/gh-md-to-html/)
