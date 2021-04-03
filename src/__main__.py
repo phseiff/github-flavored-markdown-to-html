@@ -938,8 +938,9 @@ if __name__ == "__main__":
       Unix-system won't work on Windows systems, and vice versa etc.
     * when using gh-md-to-html in python: A callable which converts markdown to html, or a string as described above.
     * OFFLINE as a value to indicate that gh-md-to-html should imitate the output of their builtin md-to-html-converter
-      using mistune. This requires the optional dependencies for "offline_conversion" to be satisfied.
-    * OFFLINE+ behaves identical to OFFLINE, but it doesn't remove potentially harmfull content like javascript and css
+      using mistune. This requires the optional dependencies for "offline_conversion" to be satisfied, by using
+      `pip3 install gh-md-to-html[offline_conversion]` or `pip3 install mistune>=2.0.0rc1`.
+    * OFFLINE+ behaves identical to OFFLINE, but it doesn't remove potentially harmful content like javascript and css
       like the GitHub REST API usually does. DO NOT USE THIS FEATURE unless you need a way to convert secure
       manually-checked markdown files without having all your inline js stripped away!
     """)

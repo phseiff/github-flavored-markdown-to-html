@@ -257,9 +257,11 @@ optional arguments:
                         should imitate the output of their builtin
                         md-to-html-converter using mistune. This requires the
                         optional dependencies for "offline_conversion" to be
-                        satisfied. 
+                        satisfied, by using `pip3 install
+                        gh-md-to-html[offline_conversion]` or `pip3 install
+                        mistune>=2.0.0rc1`. 
                         * OFFLINE+ behaves identical to OFFLINE, but it doesn't
-                        remove potentially harmfull content like javascript and
+                        remove potentially harmful content like javascript and
                         css like the GitHub REST API usually does. DO NOT USE
                         THIS FEATURE unless you need a way to convert secure
                         manually-checked markdown files without having all your

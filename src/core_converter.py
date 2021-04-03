@@ -1,11 +1,23 @@
-import mistune
+
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import html as pygments_html
 import re
-from mistune.scanner import escape_html
 import bs4
 import html
+
+try:
+    import mistune
+except ImportError:
+    raise ImportError(
+        "OFFLINE conversion requires 'mistune' package >= 2.0.0rc1!\n\ttry running: pip3 install mistune>=2.0.0rc1")
+
+if int(mistune.__version__.split(".")[0]) == 0 or mistune.__version__.startswith("2.0.0a"):
+    # ^ more specific than testing for the presence of `mistune.scanner`.
+    raise ImportError(
+        "OFFLINE conversion requires 'mistune' package >= 2.0.0rc1!\n\ttry running: pip3 install mistune>=2.0.0rc1")
+from mistune.scanner import escape_html
+
 
 pattern = re.compile('[\W_]+')
 
