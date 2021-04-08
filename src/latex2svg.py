@@ -55,7 +55,9 @@ if not hasattr(os.environ, 'LIBGS') and not find_library('gs'):
         if os.path.exists(homebrew_libgs):
             default_params['libgs'] = homebrew_libgs
     if not default_params['libgs']:
-        print('Warning: libgs not found')
+        pass
+        # disabled this to fix https://github.com/phseiff/github-flavored-markdown-to-html/issues/23.
+        # print('Warning: libgs not found')
 
 
 def latex2svg(code, params=default_params, working_directory=None):
