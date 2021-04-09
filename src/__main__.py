@@ -114,6 +114,13 @@ def find_and_replace_formulas_in_markdown(md: str, replace_formulas=True):
                                 i = -1
                         elif line[i] == "`" and is_not_escaped(line, i) and not in_formula:
                             inside_inline_code = not inside_inline_code
+                        elif inside_inline_code and not in_formula:
+                            character = line[i]
+                            if character not in string.printable:
+                                replacement = get_fitting_replacement(character, special_characters_in_code, md, "c")
+                                special_characters_in_code[replacement] = character
+                                line = line[:i] + replacement + line[i+1:]
+                                i += len(replacement) - 1
                 line = line.replace("\\$", "$")
             line = str(line.encode('ascii', 'xmlcharrefreplace'), encoding="utf-8")
         else:
