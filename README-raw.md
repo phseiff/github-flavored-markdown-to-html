@@ -46,6 +46,9 @@ Advantages include:
   REST api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
+* Allows you to choose a width for the box surrounding the text; this can increase readability if you intend to host the
+  markdown file stand-alone rather than embedded into a different html file (see #25 and
+  [Wikipedia](https://en.wikipedia.org/wiki/Line_length)).
 * Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
   original images) with a specified background color (default is white) for converting RGBA to RGB, and a specified
   compression rate (default is 90). Images with a specified width or height attribute in pixels get scaled down to that

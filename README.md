@@ -46,6 +46,9 @@ Advantages include:
   REST api usually doesn't.
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
+* Allows you to choose a width for the box surrounding the text; this can increase readability if you intend to host the
+  markdown file stand-alone rather than embedded into a different html file (see #25 and
+  [Wikipedia](https://en.wikipedia.org/wiki/Line_length)).
 * Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
   original images) with a specified background color (default is white) for converting RGBA to RGB, and a specified
   compression rate (default is 90). Images with a specified width or height attribute in pixels get scaled down to that
@@ -149,6 +152,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
                    [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    [-e COMPRESS_IMAGES [COMPRESS_IMAGES ...]]
+                   [-b BOX_WIDTH [BOX_WIDTH ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -297,6 +301,15 @@ optional arguments:
                         are also used. If a dict is passed instead of json data
                         (when using the tool as a python module), the dict is
                         used as the result of the json data.
+  -b BOX_WIDTH [BOX_WIDTH ...], --box-width BOX_WIDTH [BOX_WIDTH ...]
+                        The text of the rendered file is always displayed in a
+                        box, like GitHub READMEs and issues are. By default,
+                        this box fills the entire screen (max-width: 100%), but
+                        you can use this option to reduce its max width to be
+                        more readable when hosted stand-alone; the resulting box
+                        is always centered. --box-width accepts the same
+                        arguments the css max-width attribute accepts, e.g. 20cm
+                        or 800px.
 
 
 ```

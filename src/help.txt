@@ -9,6 +9,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
                    [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    [-e COMPRESS_IMAGES [COMPRESS_IMAGES ...]]
+                   [-b BOX_WIDTH [BOX_WIDTH ...]]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -157,4 +158,13 @@ optional arguments:
                         are also used. If a dict is passed instead of json data
                         (when using the tool as a python module), the dict is
                         used as the result of the json data.
+  -b BOX_WIDTH [BOX_WIDTH ...], --box-width BOX_WIDTH [BOX_WIDTH ...]
+                        The text of the rendered file is always displayed in a
+                        box, like GitHub READMEs and issues are. By default,
+                        this box fills the entire screen (max-width: 100%), but
+                        you can use this option to reduce its max width to be
+                        more readable when hosted stand-alone; the resulting box
+                        is always centered. --box-width accepts the same
+                        arguments the css max-width attribute accepts, e.g. 20cm
+                        or 800px.
 
