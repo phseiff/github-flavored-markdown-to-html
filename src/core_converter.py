@@ -65,18 +65,21 @@ class HighlightRenderer(mistune.HTMLRenderer):
 
     def image(self, src, alt="", title=None):
         return (
+                    '<a href="' + self._safe_url(src) + '" rel="nofollow">'
                     '<img alt="' + alt + '"'
                     + ((' title="' + escape_html(title) + '"') if title else "")
                     + ' data-canonical-src="' + self._safe_url(src) + '"'
                     + ' src="' + self._safe_url(src) + '"'
                     + ' style="max-width:100%;"/>'
+                    + '</a>'
         )
 
     def link(self, link, text=None, title=None):
         if text is None:
             text = link
-        elif text.startswith("<img alt=") and INTERNAL_USE:
-            return text
+        elif text.startswith("<a "):
+            return (text.split(' href="')[0]
+                    + ' href="' + link + '" rel="nofollow">' + text.split('" rel="nofollow">', 1)[1])
 
         s = '<a href="' + self._safe_url(link) + ('" rel="nofollow"' if not INTERNAL_USE else '"')
         if title:
@@ -90,7 +93,7 @@ class HighlightRenderer(mistune.HTMLRenderer):
         if "ToDo" in text:
             text1, text2 = text.split("ToDo", 1)
             text = text1 + '<span class="ToDo">ToDo' + text2 + "</span>"
-        return "<p>" + text + "</p>"
+        return "<p>" + text + "</p>\n"
 
 
 markdown = mistune.create_markdown(renderer=HighlightRenderer(), escape=False,
