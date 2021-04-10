@@ -56,10 +56,11 @@ class HighlightRenderer(mistune.HTMLRenderer):
         id_from_title = "-".join(
             [pattern.sub('', html.unescape(word).strip()).lower().replace("-", "") for word in text.split()])
         full_element = (
-                "<" + tag + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\""
-                + "#" + ("user-content-" if INTERNAL_USE else "") + id_from_title + "\" id=\"user-content-"
-                + id_from_title + "\">" + "<span aria-hidden=\"true\" class=\"octicon octicon-link\"></span></a>"
-                + text + "</" + tag + ">\n"
+                "<" + tag  # + " id=\"user-content-" + id_from_title + "\""
+                + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\"" + "#"
+                + ("user-content-" if INTERNAL_USE else "") + id_from_title + "\" id=\"user-content-" + id_from_title
+                + "\">" + "<span aria-hidden=\"true\" class=\"octicon octicon-link\"></span></a>" + text + "</" + tag
+                + ">\n"
         )
         return full_element
 

@@ -20,7 +20,7 @@ support, image downloading, host-ready file- and image-placement, pdf-conversion
 Whilst its main purpose is the creation of static pages from markdown files, for example in conjunction with a static
 website builder or github actions if you host on Github, it can be very well-used for any other purpose.
 
-Advantages include:
+Advantages include<!--<sup>(sorted by importance; skip the rest as soon as you're convinced!</sup>-->:
 
 * Lets you specify the markdown to convert as a string, as a repository path, as a local
   file name or as a hyperlink.
@@ -47,8 +47,11 @@ Advantages include:
 * Allows you to choose which tool or module to use at its core for the basic markdown to html conversion.
 * Styles its output with github's README-css (can be turned off).
 * Allows you to choose a width for the box surrounding the text; this can increase readability if you intend to host the
-  markdown file stand-alone rather than embedded into a different html file (see #25 and
+  markdown file stand-alone rather than embedded into a different html file (see
+  [#25](https://github.com/phseiff/github-flavored-markdown-to-html/issues/25) and
   [Wikipedia](https://en.wikipedia.org/wiki/Line_length)).
+* Comes with an optional support for the use of `[[_TOC_]]`, `{:toc}` and `[toc]` at the beginning of an otherwise empty
+  line to create a table of content for the document, like GitLab-flavored markdown does, among others.
 * Comes with an option to compress and downscale all images referenced in the markdown file (does not affect the
   original images) with a specified background color (default is white) for converting RGBA to RGB, and a specified
   compression rate (default is 90). Images with a specified width or height attribute in pixels get scaled down to that
@@ -152,7 +155,7 @@ usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-x EXTRA_CSS [EXTRA_CSS ...]]
                    [-o CORE_CONVERTER [CORE_CONVERTER ...]]
                    [-e COMPRESS_IMAGES [COMPRESS_IMAGES ...]]
-                   [-b BOX_WIDTH [BOX_WIDTH ...]]
+                   [-b BOX_WIDTH [BOX_WIDTH ...]] [-a TOC]
                    MD-origin [MD-origin ...]
 
 Convert markdown to HTML using the GitHub API and some additional tweaks with
@@ -308,8 +311,17 @@ optional arguments:
                         you can use this option to reduce its max width to be
                         more readable when hosted stand-alone; the resulting box
                         is always centered. --box-width accepts the same
-                        arguments the css max-width attribute accepts, e.g. 20cm
+                        arguments the css max-width attribute accepts, e.g. 25cm
                         or 800px.
+  -a TOC, --toc TOC     Enables the use of `[[_TOC_]]`, `{:toc}` and `[toc]`
+                        at the beginning of an otherwise empty line to create a
+                        table of content for the document. These syntax are
+                        supported by different markdown flavors, the most
+                        prominent probably being GitLab-flavored markdown
+                        (supports `[[_TOC_]]`), and since GitLab displays its
+                        READMEs quite similar to how GitHub does it, this option
+                        was added to improve support for GitLab- flavored
+                        markdown.
 
 
 ```

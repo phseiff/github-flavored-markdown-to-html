@@ -26,6 +26,7 @@ import hashlib
 import math as math_module
 import shutil
 import typing
+import html
 from .latex2svg import latex2svg
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
@@ -71,67 +72,159 @@ def get_fitting_replacement(thing_to_replace: str, table_of_replacement: dict, t
     return replacement
 
 
-def find_and_replace_formulas_in_markdown(md: str, replace_formulas=True):
+def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
     """Takes markdown as a string and returns the markdown, but every formula is replaced with a random string, as well
     as a dict to translate these strings back to the formulas. This is done to evade the problem that special characters
     in formulas should not be escaped and that they should not be interpreted, e.g. as code etc.
     Non-ascii characters in multiline code blocks also get replaced with random strings, and the third return
-    parameter is a dict mapping these replacements back to these non-ascii characters; otherwise, they would not be
+    value is a dict mapping these replacements back to these non-ascii characters; otherwise, they would not be
     transmitted correctly over to the github REST api and ultimately be lost. Replacing them with html encodings is
     not possible either since GitHub's api uses <pre>-blocks for multiline code.
-    If replace_formulas is set to false, formula replacement wil be omitted and only special characters in code blocks
-    will be replaced."""
+    If support_formulas is set to false, formula replacement wil be omitted and only special characters in code blocks
+    will be replaced; the second return value is the mapping of replacement strings to formulas.
+    The fourth return value is a list of headings in order of appearance, each one as a depth-name-tuple."""
     md_lines = md.splitlines()
     formulas = dict()
     special_characters_in_code = dict()
+    headings = list()
     inside_multiline_code = False
+    # iterate over the document's lines:
     for l_num in range(len(md_lines)):
         line = md_lines[l_num]
+        # switch between multiline code blocks and things that aren't multiline code blocks:
         if line.strip().startswith("```"):
             inside_multiline_code = not inside_multiline_code
             continue
+        # we need to look for formulas, inline code blocks and table of content indicators outside:
         if not inside_multiline_code:
             inside_inline_code = False
             formula_start = 0
             in_formula = False
-            if replace_formulas:
-                i = -1
-                while i < len(line) - 1:
-                    i += 1
-                    if not inside_multiline_code:
-                        if line[i] == "$" and is_not_escaped(line, i) and not inside_inline_code:
-                            if not in_formula:
-                                in_formula = True
-                                formula_start = i + 1
-                            else:
-                                in_formula = False
-                                formula_close = i
-                                # store formula and start iterating over the line again:
-                                formula = line[formula_start:formula_close]
-                                replacement = get_fitting_replacement(formula, formulas, md, "f")
-                                formulas[replacement] = formula
-                                line = line[:formula_start - 1] + replacement + line[formula_close + 1:]
-                                i = -1
-                        elif line[i] == "`" and is_not_escaped(line, i) and not in_formula:
-                            inside_inline_code = not inside_inline_code
-                        elif inside_inline_code and not in_formula:
-                            character = line[i]
-                            if character not in string.printable:
-                                replacement = get_fitting_replacement(character, special_characters_in_code, md, "c")
-                                special_characters_in_code[replacement] = character
-                                line = line[:i] + replacement + line[i+1:]
-                                i += len(replacement) - 1
-                line = line.replace("\\$", "$")
+            # are we add a heading? if yes, register that and move on to the next line.
+            if line.strip().startswith("#") and " " in line and line.split(" ")[0] == "#" * len(line.split(" ")[0]):
+                headings.append((len(line.split(" ")[0]), line.split(" ", 1)[1]))
+                continue
+            # we simply iterate over all characters of the line now, setting and unsetting flags as we pass them.
+            i = -1
+            while i < len(line) - 1:
+                i += 1
+                # check whether a formula starts or ends here (only if formulas support is activated):
+                if support_formulas and line[i] == "$" and is_not_escaped(line, i) and not inside_inline_code:
+                    if not in_formula:
+                        # become aware of the beginning of a formula:
+                        in_formula = True
+                        formula_start = i + 1
+                    else:
+                        # at the end of the formula, store it and replace it with a replacement string:
+                        in_formula = False
+                        formula_close = i
+                        formula = line[formula_start:formula_close]
+                        replacement = get_fitting_replacement(formula, formulas, md, "f")
+                        formulas[replacement] = formula
+                        line = line[:formula_start - 1] + replacement + line[formula_close + 1:]
+                        i += len(replacement) - ((formula_close+1) - (formula_start-1))
+                # end or start an inline code block:
+                elif line[i] == "`" and is_not_escaped(line, i) and not in_formula:
+                    inside_inline_code = not inside_inline_code
+                # store special characters in inline code blocks and replace them with a replacement string:
+                elif inside_inline_code and not in_formula:
+                    character = line[i]
+                    if character not in string.printable:
+                        replacement = get_fitting_replacement(character, special_characters_in_code, md, "c")
+                        special_characters_in_code[replacement] = character
+                        line = line[:i] + replacement + line[i+1:]
+                        i += len(replacement) - 1
+                # handle escaped formula-signs if formula support is activated:
+                if support_formulas:
+                    line = line.replace("\\$", "$")
+            # encode umlauts outside of inline code blocks:
             line = str(line.encode('ascii', 'xmlcharrefreplace'), encoding="utf-8")
+        # search for non-ascii characters if we are in a multiline code block:
         else:
             for character in set(line):
                 if character not in string.printable:
+                    # store special characters in multiline code blocks and replace them with a replacement string:
                     replacement = get_fitting_replacement(character, special_characters_in_code, md, "c")
                     special_characters_in_code[replacement] = character
                     line = line.replace(character, replacement)
         md_lines[l_num] = line
 
-    return "\n".join(md_lines), formulas, special_characters_in_code
+    return "\n".join(md_lines), formulas, special_characters_in_code, headings
+
+
+def header_name_to_link_to_header(header_name: str) -> str:
+    """Takes the name of a header and creates a link to said header in markdown format."""
+    pattern = re.compile('[\W_]+')
+    id_from_title = "-".join(
+        [pattern.sub('', html.unescape(word).strip()).lower().replace("-", "") for word in header_name.strip().split()])
+    link = "[" + header_name.strip() + "](#" + id_from_title + ")"
+    # We do NOT add `#user-content` here! This is on purpose since this is done at another place later.
+    return link
+
+
+def render_toc(md_content: str, headings: typing.List[typing.Tuple[int, str]]) -> str:
+    """Takes the md-file's content and a list of headings in the same format in which they are output by
+    find_and_replace_formulas_in_markdown, and renders toc-tags (`[[_TOC_]]`, `[toc]` and `{:toc}`) to content sections.
+    """
+
+    # stop if we have no headings:
+    if not headings:
+        return md_content
+
+    # find how deep we nestle:
+    highest_depth_in_headers = 0
+    for depth, _ in headings:
+        if depth > highest_depth_in_headers:
+            highest_depth_in_headers = depth
+
+    # find the depth in which the nestling begin:
+    for depth in range(1, highest_depth_in_headers + 1):
+        number_of_headings_with_this_deph = 0
+        for heading_depth, _ in headings:
+            if heading_depth == depth:
+                number_of_headings_with_this_deph += 1
+        if number_of_headings_with_this_deph >= 2:
+            lowest_depth_of_which_several_exist = depth
+            break
+    else:
+        # apparently, there is no depth of which more than one heading exists.
+        return md_content
+
+    # actually create the toc:
+    toc = list()
+    top_level_count = 0
+    base_indention = 0
+    for header_depth, header_text in headings:
+        if header_depth < lowest_depth_of_which_several_exist:
+            continue
+        if header_depth == lowest_depth_of_which_several_exist:
+            top_level_count += 1
+            toc.append(str(top_level_count) + ". " + header_name_to_link_to_header(header_text))
+            base_indention = len(str(top_level_count)) + 2
+        elif header_depth > lowest_depth_of_which_several_exist:
+            indention = base_indention + 2 * (header_depth - lowest_depth_of_which_several_exist - 1)
+            toc.append(" " * indention + "* " + header_name_to_link_to_header(header_text))
+    toc = "\n" + "\n".join(toc) + "\n"
+
+    # replace toc in document:
+    md_content = md_content.split("\n")
+    for toc_token in ("[[_TOC_]]", "[toc]", "{:toc}"):
+        i = -1
+        while i < len(md_content) - 1:
+            i += 1
+            if md_content[i].rstrip() == toc_token:
+                md_content[i] = toc
+    md_content = "\n".join(md_content)
+
+    return md_content
+
+
+# a stand-alone function to render tocs in markdown files in case one wants to do just that:
+
+def render_toc_in_md_file_stand_alone(md_content: str) -> str:
+    _, _, _, headers = find_and_replace_formulas_in_markdown(md_content)
+    return render_toc(md_content, headers)
+
 
 # Decide which function to convert latex formulas to svg is preferable:
 
@@ -456,7 +549,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
          output_name="<name>.html", output_pdf=None, style_pdf="True", footer=None, math="True",
          formulas_supporting_darkreader=False, extra_css=None,
          core_converter: typing.Union[str, typing.Callable] = markdown_to_html_via_github_api,
-         compress_images=False, enable_image_downloading=True, box_width=None):
+         compress_images=False, enable_image_downloading=True, box_width=None, toc=False):
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
@@ -498,11 +591,21 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         print("\n------------\nOriginal content:\n------------\n\n", md_content)
 
     # replace formulas with random sequences and get a dict to map them back:
-    md_content, formula_mapper, special_chars_in_code_blocks = find_and_replace_formulas_in_markdown(md_content, math)
+    md_content, formula_mapper, special_chars_in_code_blocks, headings = find_and_replace_formulas_in_markdown(
+        md_content, math)
 
     if DEBUG:
         print("\n------------\nOriginal Content (Formulas replaced):\n------------\n\n", md_content)
         print("\n------------\nFormula Map:\n------------\n\n", formula_mapper)
+        print("\n------------\nSpecial Char Map:\n------------\n\n", special_chars_in_code_blocks)
+
+    # render toc if that option is enabled:
+    if toc:
+        md_content = render_toc(md_content, headings)
+
+    if DEBUG:
+        print("\n------------\nHeadings in file:\n------------\n\n", headings)
+        print("\n------------\nOriginal Content (TOCs rendered):\n------------\n\n", md_content)
 
     # request markdown-to-html-conversion from our preferred method:
 
@@ -768,6 +871,16 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         link_soup_representation["href"] = link_location
     html_rendered = html_soup.__str__()
 
+    # add correct id to all headings:
+    html_soup = BeautifulSoup(html_rendered, 'html.parser')
+    for h in ("h1", "h2", "h3", "h4", "h5"):
+        for header_soup_representation in html_soup.find_all(h):
+            header_soup_representation['id'] = header_soup_representation.a['id']
+            # ToDo: Implement these nice anchor svg icons GitHub displays next to every heading
+    #       link_within_header = header_soup_representation.a
+    #       link_within_header.append(BeautifulSoup(GITHUB_LINK_ANCHOR, 'html.parser').find("svg"))
+    html_rendered = html_soup.__str__()
+
     if DEBUG:
         print("\n------------\nHtml with fixed internal links:\n------------\n\n", html_rendered)
 
@@ -991,7 +1104,14 @@ if __name__ == "__main__":
     By default, this box fills the entire screen (max-width: 100%%),
     but you can use this option to reduce its max width to be more readable when hosted stand-alone; the resulting box
     is always centered.
-    --box-width accepts the same arguments the css max-width attribute accepts, e.g. 20cm or 800px.
+    --box-width accepts the same arguments the css max-width attribute accepts, e.g. 25cm or 800px.
+    """)
+
+    parser.add_argument('-a', '--toc', type=bool, default=False, help="""
+    Enables the use of `[[_TOC_]]`, `{:toc}` and `[toc]` at the beginning of an otherwise empty line to create a
+    table of content for the document. These syntax are supported by different markdown flavors, the most prominent
+    probably being GitLab-flavored markdown (supports `[[_TOC_]]`), and since GitLab displays its READMEs quite similar
+    to how GitHub does it, this option was added to improve support for GitLab-flavored markdown.
     """)
 
     # This hackish ensures the bullet points in the help text generated by argparse get formatted correctly.
@@ -1046,7 +1166,7 @@ if __name__ == "__main__":
         traceback.print_exc()
         print("\nAn Error occurred because a file required for the conversion could not be found.\n\
 This is probably your input file, but it might also be an image from your disk referenced in your .md, or you might\n\
-have deleted autogenerated files during the convertion process.")
+have deleted autogenerated files during the conversion process.")
         exit(1)
     except requests.exceptions.ConnectionError:
         traceback.print_exc()
