@@ -4,30 +4,28 @@
 name: Upload Python Package
 
 on:
-  repository_dispatch:
-    types: [push-to-pypi]
-  release:
-    types: [created, prereleased]
+  push
 
 jobs:
   deploy:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - name: Checkout 🛎️
+      uses: actions/checkout@v2
       with:
-        python-version: '3.x'
+        persist-credentials: false
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install setuptools wheel twine
+
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        python setup.py sdist bdist_wheel
-        twine upload dist/*
+        python3 setup.py sdist bdist_wheel
+        twine upload dist/* || true
