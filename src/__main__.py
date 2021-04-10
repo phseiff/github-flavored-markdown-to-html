@@ -910,20 +910,35 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             raise Exception("""\
 Unfortunately, you need to have pdfkit installed to save as pdf. Find out how to install it here:
 https://pypi.org/project/pdfkit/""")
-        # ensure the image links are absolute file paths:
+        # ensure the image srcs are absolute file paths:
         # ToDo: Completely disable pdf conversion on windows machines, since wkhtmltopdf won't run on them anyways.
-        html_soup_representation = BeautifulSoup(html_rendered, parser="html.parser")
-        for link_type in ("src", "href"):
-            tags_with_links = html_soup_representation.find_all(lambda tag: tag.has_attr(link_type))
-            for tag_with_link in tags_with_links:
-                link = tag_with_link[link_type]
-                if link.startswith("https://") or link.startswith("http://"):
-                    pass
-                else:
-                    directory_to_link_to = abs_website_root if link.startswith("/") else abs_destination
-                    abs_path = urllib.parse.quote(os.path.join(os.getcwd(), directory_to_link_to.lstrip("/"), link))
-                    tag_with_link[link_type] = "file://" + abs_path
+        html_soup_representation = BeautifulSoup(html_rendered, "html.parser")
+        tags_with_links = html_soup_representation.find_all(lambda tag: tag.has_attr("src"))
+        for tag_with_link in tags_with_links:
+            link = tag_with_link["src"]
+            if link.startswith("https://") or link.startswith("http://"):
+                pass
+            else:
+                directory_to_link_to = abs_website_root if link.startswith("/") else abs_destination
+                abs_path = urllib.parse.quote(os.path.join(os.getcwd(), directory_to_link_to.lstrip("/"), link))
+                tag_with_link["src"] = "file://" + abs_path
         html_rendered = html_soup_representation.__str__()
+
+        # Remove links that link to something that clearly lies on the disk or is a relative link, since these won't
+        #  work in a pdf-file anyways or cannot be relied on.
+        html_soup_representation = BeautifulSoup(html_rendered, "html.parser")
+        for link in html_soup_representation.find_all("a"):
+            href = link["href"]
+            if (
+                    (href.startswith("/") and not href.startswith("//"))
+                    or href.startswith("file://")
+                    or (not href.startswith("/") and not href.startswith("#") and "://" not in href)
+            ):
+                for child in link:
+                    link.parent.append(child)
+                link.decompose()
+        html_rendered = html_soup_representation.__str__()
+        # ToDo: Make sure that anchor links work correctly... but that's a task for another day.
 
         # remove the css if we want to save it without css:
         if not style_pdf:
