@@ -226,9 +226,9 @@ optional arguments:
                         use --output-pdf) will not be styled using github's css.
   -f FOOTER [FOOTER ...], --footer FOOTER [FOOTER ...]
                         An optional piece of html which will be included as a
-                        footer where the 'hosted with <3 by github'-footer
-                        usually is. Defaults to None, meaning that the section
-                        usually containing said footer will be omitted
+                        footer where the 'hosted with <3 by github'-footer in a
+                        gist usually is. Defaults to None, meaning that the
+                        section usually containing said footer will be omitted
                         altogether.
   -m MATH, --math MATH  If set to True, which is the default, LaTeX-formulas
                         using $formula$-notation will be rendered.
@@ -251,7 +251,8 @@ optional arguments:
   -o CORE_CONVERTER [CORE_CONVERTER ...], --core-converter CORE_CONVERTER [CORE_CONVERTER ...]
                         The converter to use to convert the given markdown to
                         html, before additional modifications such as formula
-                        support and image downloading are applied; this can be
+                        support and image downloading are applied; this defaults
+                        to using GitHub's REST API and can be 
                         * on Unix/ any system with a cmd: a command containing
                         the string "{md}", where "{md}" will be replaced with an
                         escaped version of the markdown file's content, and

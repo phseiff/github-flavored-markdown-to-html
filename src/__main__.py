@@ -884,7 +884,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     if DEBUG:
         print("\n------------\nHtml with fixed internal links:\n------------\n\n", html_rendered)
 
-    # ensure we have the css and the code navigation banner where we want it to be:
+    # ensure we have the css and the code navigation banner where we want it to be (anyone knows what this is for?):
     with open_local("github-css.min.css", "r") as from_f:
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
             to_f.write(from_f.read())
@@ -1054,7 +1054,8 @@ if __name__ == "__main__":
     """)
 
     parser.add_argument('-f', '--footer', nargs="+", action=FuseInputString, help="""
-    An optional piece of html which will be included as a footer where the 'hosted with <3 by github'-footer usually is.
+    An optional piece of html which will be included as a footer where the 'hosted with <3 by github'-footer in a gist
+    usually is.
     Defaults to None, meaning that the section usually containing said footer will be omitted altogether.
     """)
 
@@ -1083,7 +1084,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--core-converter', nargs="+", action=FuseInputString,
                         default=markdown_to_html_via_github_api, help="""
     The converter to use to convert the given markdown to html, before additional modifications such as formula support
-    and image downloading are applied; this can be
+    and image downloading are applied; this defaults to using GitHub's REST API and can be
     * on Unix/ any system with a cmd: a command containing the string "{md}", where "{md}" will be replaced with an
       escaped version of the markdown file's content, and which returns the finished html. Please note that commands for
       Unix-system won't work on Windows systems, and vice versa etc.
