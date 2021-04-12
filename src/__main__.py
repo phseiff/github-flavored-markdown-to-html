@@ -891,6 +891,19 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     #       link_within_header.append(BeautifulSoup(GITHUB_LINK_ANCHOR, 'html.parser').find("svg"))
     html_rendered = html_soup.__str__()
 
+    # turns out to not be necessary (
+    # un-escape all `href`s und `src`s (they are all html-escaped, for some reason):
+    # html_soup = BeautifulSoup(html_rendered, 'html.parser')
+    # for tag in ("a", "img"):
+    #     for link_or_img_soup_representation in html_soup.find_all(tag):
+    #         for attr_name in ("src", "href", "data-canonical-src"):
+    #             if link_or_img_soup_representation.has_attr(attr_name):
+    #                 print("FOO&amp;Bar", link_or_img_soup_representation[attr_name][10:],
+    #                       html.unescape(link_or_img_soup_representation[attr_name])[10:])
+    #                 link_or_img_soup_representation[attr_name] = html.unescape(
+    #                     link_or_img_soup_representation[attr_name])
+    # html_rendered = html_soup.__str__()
+
     if DEBUG:
         print("\n------------\nHtml with fixed internal links:\n------------\n\n", html_rendered)
 

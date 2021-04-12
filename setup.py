@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='gh_md_to_html',
-    version='1.9.4',
+    version='1.9.5',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -14,7 +14,7 @@ setup(
     url='https://github.com/phseiff/github-flavored-markdown-to-html/',
     packages=['gh_md_to_html'],
     package_dir={'gh_md_to_html': 'src'},
-    package_data={'gh_md_to_html': ['*']},
+    package_data={'gh_md_to_html': ['*', 'requirements.txt']},
     include_package_data=True,
     install_requires=open("requirements.txt", "r").read().splitlines(),
     license="LICENSE.txt",
