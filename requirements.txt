@@ -1,6 +1,0 @@
-Pillow>=8.0.1
-requests
-setuptools
-shellescape
-webcolors
-beautifulsoup4
