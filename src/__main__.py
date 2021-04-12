@@ -858,6 +858,13 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
         if DEBUG:
             print("dict of image hashes:", hashes_to_images)
+    else:
+        # if image caching is disabled, change image's `src` to their `data-canonical-src` to revert GitHub's caching.
+        html_soup = BeautifulSoup(html_rendered, 'html.parser')
+        for img_soup_representation in html_soup.find_all("img"):
+            if img_soup_representation.has_attr("data-canonical-src"):
+                img_soup_representation["src"] = img_soup_representation["data-canonical-src"]
+        html_rendered = html_soup.__str__()
 
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
