@@ -863,6 +863,9 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         html_soup = BeautifulSoup(html_rendered, 'html.parser')
         for img_soup_representation in html_soup.find_all("img"):
             if img_soup_representation.has_attr("data-canonical-src"):
+                if (img_soup_representation.parent.has_attr("href")
+                        and img_soup_representation.parent["href"] == img_soup_representation["src"]):
+                    img_soup_representation.parent["href"] = img_soup_representation["data-canonical-src"]
                 img_soup_representation["src"] = img_soup_representation["data-canonical-src"]
         html_rendered = html_soup.__str__()
 
