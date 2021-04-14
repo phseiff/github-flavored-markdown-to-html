@@ -998,7 +998,7 @@ https://pypi.org/project/pdfkit/""")
             os.path.join(destination, output_pdf),
             options=dict() if DEBUG else options,
         )
-        # os.remove(os.path.join(abs_destination, output_pdf + ".html")) ToDo: re-add this!!
+        os.remove(os.path.join(abs_destination, output_pdf + ".html"))
 
     # return the result
     return html_rendered
