@@ -96,22 +96,19 @@ point entries, or formulas, and gh-md-to-html does not.
 Use `pip3 install gh-md-to-html` to install directly from the python package index, or `python3 -m pip install ...` if
 you are on windows.
 
-Or use
-
-```
-git clone https://github.com/phseiff/github-flavored-markdown-to-html.git
-cd github-flavored-markdown-to-html
-pip3 install .
-```
-
-to clone from master and add changes before installing.
-
 Both might require `sudo` on Linux, and you can optionally do
+
 ```
-sudo apt-get install wkhtmltopdf
-python3 -m pip install pdfkit
+python3 -m pip install gh-md-to-html[pdf_export]
 ```
-(if you want to use the optional pdf features) to include pdf support into your installation.
+
+and [install wkhtmltopdf](https://wkhtmltopdf.org/downloads.html) to get the optional pdf-conversion feature and convert markdown files to pdf, and/or
+
+```
+python3 -m pip install gh-md-to-html[offline_conversion]
+```
+
+to get the optional offline-conversion feature up and running.
 
 ## Usage
 
@@ -147,7 +144,7 @@ like this:
 usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-w WEBSITE_ROOT [WEBSITE_ROOT ...]]
                    [-d DESTINATION [DESTINATION ...]]
-                   [-i IMAGE_PATHS [IMAGE_PATHS ...]]
+                   [-i [IMAGE_PATHS [IMAGE_PATHS ...]]]
                    [-c CSS_PATHS [CSS_PATHS ...]]
                    [-n OUTPUT_NAME [OUTPUT_NAME ...]]
                    [-p OUTPUT_PDF [OUTPUT_PDF ...]] [-s STYLE_PDF]
@@ -199,10 +196,13 @@ optional arguments:
   -d DESTINATION [DESTINATION ...], --destination DESTINATION [DESTINATION ...]
                         Where to store the generated html. This path is relative
                         to --website-root. Defaults to "".
-  -i IMAGE_PATHS [IMAGE_PATHS ...], --image-paths IMAGE_PATHS [IMAGE_PATHS ...]
+  -i [IMAGE_PATHS [IMAGE_PATHS ...]], --image-paths [IMAGE_PATHS [IMAGE_PATHS ...]]
                         Where to store the images needed or generated for the
                         html. This path is relative to website-root. Defaults to
-                        the "images"-folder within the destination folder.
+                        the "images"-folder within the destination folder. Leave
+                        this option empty to completely disable image
+                        caching/downloading and leave all image links
+                        unmodified.
   -c CSS_PATHS [CSS_PATHS ...], --css-paths CSS_PATHS [CSS_PATHS ...]
                         Where to store the css needed for the html (as a path
                         relative to the website root). Defaults to the
@@ -220,7 +220,10 @@ optional arguments:
                         same directory as the html file, using pdfkit, a python
                         library which will also need to be installed for this to
                         work. You may use the <name> variable in this value like
-                        you did in --output-name.
+                        you did in --output-name. Do not use this with the -c
+                        option if the input of the -c option is not trusted;
+                        execution of malicious code might be the consequence
+                        otherwise!!
   -s STYLE_PDF, --style-pdf STYLE_PDF
                         If set to false, the generated pdf (only relevant if you
                         use --output-pdf) will not be styled using github's css.

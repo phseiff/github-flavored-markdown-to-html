@@ -1,7 +1,7 @@
 usage: __main__.py [-h] [-t {file,repo,web,string}]
                    [-w WEBSITE_ROOT [WEBSITE_ROOT ...]]
                    [-d DESTINATION [DESTINATION ...]]
-                   [-i IMAGE_PATHS [IMAGE_PATHS ...]]
+                   [-i [IMAGE_PATHS [IMAGE_PATHS ...]]]
                    [-c CSS_PATHS [CSS_PATHS ...]]
                    [-n OUTPUT_NAME [OUTPUT_NAME ...]]
                    [-p OUTPUT_PDF [OUTPUT_PDF ...]] [-s STYLE_PDF]
@@ -53,10 +53,13 @@ optional arguments:
   -d DESTINATION [DESTINATION ...], --destination DESTINATION [DESTINATION ...]
                         Where to store the generated html. This path is relative
                         to --website-root. Defaults to "".
-  -i IMAGE_PATHS [IMAGE_PATHS ...], --image-paths IMAGE_PATHS [IMAGE_PATHS ...]
+  -i [IMAGE_PATHS [IMAGE_PATHS ...]], --image-paths [IMAGE_PATHS [IMAGE_PATHS ...]]
                         Where to store the images needed or generated for the
                         html. This path is relative to website-root. Defaults to
-                        the "images"-folder within the destination folder.
+                        the "images"-folder within the destination folder. Leave
+                        this option empty to completely disable image
+                        caching/downloading and leave all image links
+                        unmodified.
   -c CSS_PATHS [CSS_PATHS ...], --css-paths CSS_PATHS [CSS_PATHS ...]
                         Where to store the css needed for the html (as a path
                         relative to the website root). Defaults to the
@@ -74,7 +77,10 @@ optional arguments:
                         same directory as the html file, using pdfkit, a python
                         library which will also need to be installed for this to
                         work. You may use the <name> variable in this value like
-                        you did in --output-name.
+                        you did in --output-name. Do not use this with the -c
+                        option if the input of the -c option is not trusted;
+                        execution of malicious code might be the consequence
+                        otherwise!!
   -s STYLE_PDF, --style-pdf STYLE_PDF
                         If set to false, the generated pdf (only relevant if you
                         use --output-pdf) will not be styled using github's css.

@@ -27,6 +27,7 @@ import math as math_module
 import shutil
 import typing
 import html
+import warnings
 from .latex2svg import latex2svg
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
@@ -558,7 +559,9 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         website_root = ""
     if destination is None:
         destination = ""
-    if image_paths is None:
+    if not image_paths:
+        if image_paths == "":
+            enable_image_downloading = False
         image_paths = destination + (os.sep if destination else "") + "images"
     if css_paths is None:
         css_paths = "github-markdown-css"
@@ -873,11 +876,14 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
 
     # ensure <a href="#fufu"> gets converted to <a href="#user-content-fufu">:
+    contains_file_internal_links = False
     html_soup = BeautifulSoup(html_rendered, 'html.parser')
     for link_soup_representation in html_soup.find_all("a"):
         link_location = link_soup_representation.get("href")
         if link_location.startswith("#"):
             link_location = "#user-content-" + link_location[1:]
+            if not (link_soup_representation.has_attr("class") and link_soup_representation["class"] == ["anchor"]):
+                contains_file_internal_links = True
         link_soup_representation["href"] = link_location
     html_rendered = html_soup.__str__()
 
@@ -890,19 +896,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     #       link_within_header = header_soup_representation.a
     #       link_within_header.append(BeautifulSoup(GITHUB_LINK_ANCHOR, 'html.parser').find("svg"))
     html_rendered = html_soup.__str__()
-
-    # turns out to not be necessary (
-    # un-escape all `href`s und `src`s (they are all html-escaped, for some reason):
-    # html_soup = BeautifulSoup(html_rendered, 'html.parser')
-    # for tag in ("a", "img"):
-    #     for link_or_img_soup_representation in html_soup.find_all(tag):
-    #         for attr_name in ("src", "href", "data-canonical-src"):
-    #             if link_or_img_soup_representation.has_attr(attr_name):
-    #                 print("FOO&amp;Bar", link_or_img_soup_representation[attr_name][10:],
-    #                       html.unescape(link_or_img_soup_representation[attr_name])[10:])
-    #                 link_or_img_soup_representation[attr_name] = html.unescape(
-    #                     link_or_img_soup_representation[attr_name])
-    # html_rendered = html_soup.__str__()
 
     if DEBUG:
         print("\n------------\nHtml with fixed internal links:\n------------\n\n", html_rendered)
@@ -934,17 +927,22 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 Unfortunately, you need to have pdfkit installed to save as pdf. Find out how to install it here:
 https://pypi.org/project/pdfkit/""")
         # ensure the image srcs are absolute file paths:
-        # ToDo: Completely disable pdf conversion on windows machines, since wkhtmltopdf won't run on them anyways.
         html_soup_representation = BeautifulSoup(html_rendered, "html.parser")
-        tags_with_links = html_soup_representation.find_all(lambda tag: tag.has_attr("src"))
-        for tag_with_link in tags_with_links:
-            link = tag_with_link["src"]
-            if link.startswith("https://") or link.startswith("http://"):
-                pass
-            else:
-                directory_to_link_to = abs_website_root if link.startswith("/") else abs_destination
-                abs_path = urllib.parse.quote(os.path.join(os.getcwd(), directory_to_link_to.lstrip("/"), link))
-                tag_with_link["src"] = "file://" + abs_path
+        for filter, attr in (((lambda tag: tag.has_attr("src")), "src"), ("link", "href")):
+            for tag_with_link in html_soup_representation.find_all(filter):
+                link = tag_with_link[attr]
+                if "://" in link:
+                    pass
+                else:
+                    directory_to_link_to = abs_website_root if link.startswith("/") else abs_destination
+                    if directory_to_link_to == "./":
+                        directory_to_link_to = ""
+                    cwd = str(os.getcwd())
+                    abs_path = urllib.parse.quote(os.path.join(cwd, directory_to_link_to.strip("/"), link.strip("/")))
+                    if link.startswith("/") and not enable_image_downloading and attr == "src":
+                        # link is already absolute
+                        abs_path = link
+                    tag_with_link[attr] = "file://" + abs_path
         html_rendered = html_soup_representation.__str__()
 
         # Remove links that link to something that clearly lies on the disk or is a relative link, since these won't
@@ -961,7 +959,6 @@ https://pypi.org/project/pdfkit/""")
                     link.parent.append(child)
                 link.decompose()
         html_rendered = html_soup_representation.__str__()
-        # ToDo: Make sure that anchor links work correctly... but that's a task for another day.
 
         # remove the css if we want to save it without css:
         if not style_pdf:
@@ -973,6 +970,24 @@ https://pypi.org/project/pdfkit/""")
         else:
             output_pdf = output_pdf.replace("<name>", file_name_origin)
 
+        # check which version of wkhtmltopdf we have installed
+        version_str = str(subprocess.check_output(["wkhtmltopdf", "-V"]), encoding="UTF-8").strip()
+        if version_str.startswith("wkhtmltopdf "):
+            version_str = version_str.split(" ", 1)[1]
+        version_number = [int(i) for i in version_str.split()[0].split(".")]
+        given_version_as_number = 10**12 * version_number[0] + 10**6 * version_number[1] + version_number[2]
+        ideal_version_as_number = 10**12 * 0 + 10**6 * 12 + 6
+        options = {'quiet': ''}
+        if given_version_as_number >= ideal_version_as_number:
+            options['enable-local-file-access'] = ''
+            # ^ see https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2660#issuecomment-663063752
+        if contains_file_internal_links and "(with patched qt)" not in version_str:
+            warning_text = ("Your file contains internal links, but your version of wkhtmltopdf (version \""
+                            + version_str + "\") does not support using these,\n\tsince you need a version with the qt"
+                            + " patches to use internal links within your file.\n\tYou can download these from"
+                            + " https://wkhtmltopdf.org/downloads.html")
+            warnings.warn(warning_text, Warning)
+
         # Finally convert it:
         # (this saving and then converting ensures we don't convert links like https:foo to
         # absolute_path_to_file_location/https://foo)
@@ -981,9 +996,9 @@ https://pypi.org/project/pdfkit/""")
         pdfkit.from_file(
             os.path.join(abs_destination, output_pdf + ".html"),
             os.path.join(destination, output_pdf),
-            options=dict() if DEBUG else {'quiet': ''},
+            options=dict() if DEBUG else options,
         )
-        os.remove(os.path.join(abs_destination, output_pdf + ".html"))
+        # os.remove(os.path.join(abs_destination, output_pdf + ".html")) ToDo: re-add this!!
 
     # return the result
     return html_rendered
@@ -1053,9 +1068,10 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--destination', nargs="+", action=FuseInputString, help="""
     Where to store the generated html. This path is relative to --website-root. Defaults to "".""")
 
-    parser.add_argument('-i', '--image-paths', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-i', '--image-paths', nargs="*", const="", action=FuseInputString, help="""
     Where to store the images needed or generated for the html. This path is relative to website-root. Defaults to the
-    "images"-folder within the destination folder.""")
+    "images"-folder within the destination folder.
+    Leave this option empty to completely disable image caching/downloading and leave all image links unmodified.""")
 
     parser.add_argument('-c', '--css-paths', nargs="+", action=FuseInputString, help="""
     Where to store the css needed for the html (as a path relative to the website root). Defaults to the
@@ -1070,7 +1086,9 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--output-pdf', nargs="+", action=FuseInputString, help="""
     If set, the file will also be saved as a pdf file in the same directory as the html file, using pdfkit, a python
     library which will also need to be installed for this to work. You may use the <name> variable in this value like
-    you did in --output-name.""")
+    you did in --output-name.
+    Do not use this with the -c option if the input of the -c option is not trusted; execution of malicious code might
+    be the consequence otherwise!!""")
 
     parser.add_argument('-s', '--style-pdf', default="true", help="""
     If set to false, the generated pdf (only relevant if you use --output-pdf) will not be styled using github's css.
