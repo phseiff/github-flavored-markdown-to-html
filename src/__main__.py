@@ -29,6 +29,7 @@ import typing
 import html
 import warnings
 from .latex2svg import latex2svg
+from .helpers import heading_name_to_id_value
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
@@ -155,9 +156,7 @@ def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
 
 def header_name_to_link_to_header(header_name: str) -> str:
     """Takes the name of a header and creates a link to said header in markdown format."""
-    pattern = re.compile('[\W_]+')
-    id_from_title = "-".join(
-        [pattern.sub('', html.unescape(word).strip()).lower().replace("-", "") for word in header_name.strip().split()])
+    id_from_title = heading_name_to_id_value(header_name)
     link = "[" + header_name.strip() + "](#" + id_from_title + ")"
     # We do NOT add `#user-content` here! This is on purpose since this is done at another place later.
     return link

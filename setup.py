@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+import glob
 
 setup(
     name='gh_md_to_html',
-    version='1.10.1',
+    version='1.10.2',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -14,6 +15,9 @@ setup(
     url='https://github.com/phseiff/github-flavored-markdown-to-html/',
     packages=['gh_md_to_html'],
     package_dir={'gh_md_to_html': 'src'},
+    # data_files=[
+    #     ('src', glob.glob("src/*")),
+    # ],
     package_data={'gh_md_to_html': ['*']},
     include_package_data=True,
     install_requires=["Pillow>=8.0.1", "requests", "setuptools", "shellescape", "webcolors", "beautifulsoup4"],

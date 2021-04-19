@@ -5,6 +5,7 @@ from pygments.formatters import html as pygments_html
 import re
 import bs4
 import html
+from .helpers import heading_name_to_id_value
 
 try:
     import mistune
@@ -17,9 +18,6 @@ if int(mistune.__version__.split(".")[0]) == 0 or mistune.__version__.startswith
     raise ImportError(
         "OFFLINE conversion requires 'mistune' package >= 2.0.0rc1!\n\ttry running: pip3 install mistune>=2.0.0rc1")
 from mistune.scanner import escape_html
-
-
-pattern = re.compile('[\W_]+')
 
 
 # This is False, and True enables some things I personally find endearing to have in a converter:
@@ -53,8 +51,7 @@ class HighlightRenderer(mistune.HTMLRenderer):
 
     def heading(self, text, level):
         tag = 'h' + str(level)
-        id_from_title = "-".join(
-            [pattern.sub('', html.unescape(word).strip()).lower().replace("-", "") for word in text.split()])
+        id_from_title = heading_name_to_id_value(text)
         full_element = (
                 "<" + tag  # + " id=\"user-content-" + id_from_title + "\""
                 + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\"" + "#"

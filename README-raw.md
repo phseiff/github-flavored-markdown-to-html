@@ -148,12 +148,12 @@ As mentioned above, any image referenced in the markdown file is stored locally 
 referenced using a root-relative hyperlinks in the generated html. How the converter
 guesses the location of the image is shown in the following table, with the type of imagelink noted on the top and the type of input markdown noted on the left:
 
-|                                     | `https://` or `http://` | abs. filepath                                             | rel. filepath                                                                                 | starting with `/` (e.g. `/image.png`) | not starting with `/` (e.g. `image.png`) |
-| ----------------------------------- | ----------------------- |:---------------------------------------------------------:| --------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------- |
-| `-t file`                           | from the address        | abs. filepath                                             | rel. filepath (from where the `.md`-file lies)                                                | -                                     | -                                        |
-| `-t string`                         | from the address        | abs.filepath, but needs confirmation for security reasons | rel. filepath (to where the tool is called from), but needs confirmation for security reasons | -                                     | -                                        |
-| `username/repo/dir/file.md -t repo` | from the address        | -                                                         | -                                                                                             | `username/repo/imagedir/image.png`    | `username/repo/dir/imagedir/image.png`   |
-| `https://foo.com/bar/baz.md -t web` | from the address        | -                                                         | -                                                                                             | `https://foo.com/image.png`           | `https://foo.com/bar/image.png`          |
+|                                     | `https://` or `http://` | abs. filepath                                             | rel. filepath                                                                                 | starting with `/` (e.g. `/imagedir/image.png`) | not starting with `/` (e.g. `imagedir/image.png`) |
+| ----------------------------------- | ----------------------- |:---------------------------------------------------------:| --------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------- |
+| `-t file`                           | from the address        | abs. filepath                                             | rel. filepath (from where the `.md`-file lies)                                                | -                                              | -                                                 |
+| `-t string`                         | from the address        | abs.filepath, but needs confirmation for security reasons | rel. filepath (to where the tool is called from), but needs confirmation for security reasons | -                                              | -                                                 |
+| `username/repo/dir/file.md -t repo` | from the address        | -                                                         | -                                                                                             | `username/repo/imagedir/image.png`             | `username/repo/dir/imagedir/image.png`            |
+| `https://foo.com/bar/baz.md -t web` | from the address        | -                                                         | -                                                                                             | `https://foo.com/image.png`                    | `https://foo.com/bar/image.png`                   |
 
 ## Demonstration
 
@@ -214,6 +214,10 @@ This tool is already used by
 
 * I wrote a small write-up on Reddit about gh-md-to-html, which doesn't really say anything that isn't somehow said in this README already, but might be an easier read:
   [link](https://www.reddit.com/r/Markdown/comments/lyivyg/ghmdtohtml_convert_githubflavored_markdown_to/)
+* Better explanation (by me) on how to use `gh-md-to-html` for md-to-pdf conversion (under a gist about md-to-pdf conversion):
+  [link](https://gist.github.com/justincbagley/ec0a6334cc86e854715e459349ab1446#gistcomment-3706145)
+* Brief mention of `gh-md-to-html` in another project's documentation:
+  [link](https://github.com/bearwalker/GitAtom/blob/42d84449f62f3e0880af49e8b1f3dd8f159062c6/GitAtomDocs.md#markdown-to-html)
 * If you are aware of any other mentions or discussions regarding gh-md-to-html, feel free to tell me so I can include them!
 
 ## Attribution
