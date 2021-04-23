@@ -803,7 +803,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                 if compression_information["srcset"] and not width:
                     srcset = compression_information["srcset"]
                     srcset.sort()
-                    srcset = list(filter((lambda x: x < full_image.width), srcset))
+                    srcset = [x for x in srcset if x < full_image.width]
                     srcset.append(full_image.width)
                     # Create all the compressed images and a srcset-attribute for them:
                     srcset_attribute = str()
