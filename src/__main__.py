@@ -549,7 +549,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
          output_name="<name>.html", output_pdf=None, style_pdf="True", footer=None, math="True",
          formulas_supporting_darkreader=False, extra_css=None,
          core_converter: typing.Union[str, typing.Callable] = markdown_to_html_via_github_api,
-         compress_images=False, enable_image_downloading=True, box_width=None, toc=False):
+         compress_images=False, enable_image_downloading=True, box_width=None, toc=False, dont_make_images_links=False):
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
@@ -635,6 +635,15 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
     if DEBUG:
         print("\n------------\nHtml content:\n------------\n\n", html_content)
+
+    # remove links around images if requested:
+    if dont_make_images_links:
+        html_bs4 = BeautifulSoup(html_content, "html.parser")
+        for img_bs4 in html_bs4.find_all("img"):
+            if img_bs4.parent.name == "a":
+                if img_bs4.parent["href"] == img_bs4["src"]:
+                    img_bs4.parent.unwrap()
+        html_content = html_bs4.__str__()
 
     # re-insert formulas in html, this time as proper svg images:
     html_content = find_and_render_formulas_in_html(html_content, formula_mapper, special_chars_in_code_blocks)
