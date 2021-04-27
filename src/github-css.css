@@ -612,6 +612,11 @@
 	color: #24292e
 }
 
+.gist strong {
+	/* Added to make sure that bold text is properly bolded. */
+   font-weight: bolder;
+}
+
 .gist .editor-abort {
 	display: inline;
 	font-size: 14px

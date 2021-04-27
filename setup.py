@@ -5,7 +5,7 @@ import glob
 
 setup(
     name='gh_md_to_html',
-    version='1.11.0',
+    version='1.11.1',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
@@ -20,7 +20,7 @@ setup(
     # ],
     package_data={'gh_md_to_html': ['*']},
     include_package_data=True,
-    install_requires=["Pillow>=8.0.1", "requests", "setuptools", "shellescape", "webcolors", "beautifulsoup4"],
+    install_requires=["Pillow>=8.0.1", "requests", "shellescape", "webcolors", "beautifulsoup4"],
     license="LICENSE.txt",
     extras_require={
         'pdf_export': ["pdfkit"],
