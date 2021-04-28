@@ -910,8 +910,15 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
     # ensure we have the css and the code navigation banner where we want it to be (anyone knows what this is for?):
     with open_local("github-css.min.css", "r") as from_f:
+        github_min_css = from_f.read()
+        if core_converter in ("OFFLINE+", "OFFLINE"):
+            # add syntax highlighting css if we use OFFLINE or OFFLINE+ for conversion:
+            from pygments.formatters import html as pygments_html
+            github_min_css += pygments_html.HtmlFormatter().get_style_defs('.highlight')\
+                .replace("\n", "").replace(";", " !important;").replace(" }", " !important }")
+            print(github_min_css)
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
-            to_f.write(from_f.read())
+            to_f.write(github_min_css)
     with open_local("code-navigation-banner-illo.svg", "r") as from_f:
         with open(os.path.join(abs_css_paths, "code-navigation-banner-illo.svg"), "w") as to_f:
             to_f.write(from_f.read())

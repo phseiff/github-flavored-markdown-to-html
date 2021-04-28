@@ -41,12 +41,13 @@ class HighlightRenderer(mistune.HTMLRenderer):
             lexer = get_lexer_by_name(language, stripall=True)
             formatter = pygments_html.HtmlFormatter()
             highlighted = highlight(code, lexer, formatter)
-            highlighted_soup = bs4.BeautifulSoup(highlighted, "html.parser")
+            """highlighted_soup = bs4.BeautifulSoup(highlighted, "html.parser")
             for code_soup_element in highlighted_soup.find_all("span"):
                 if code_soup_element.has_attr("class"):
                     code_soup_element["class"] = ["pl-" + code_soup_element["class"][0]]
             highlighted_soup.find("div")["class"].append("highlight-source-" + language.replace("+", "p"))
-            return highlighted_soup.__str__()
+            return highlighted_soup.__str__()"""
+            return highlighted
         return '<pre><code>' + mistune.escape(code) + '</code></pre>'
 
     def heading(self, text, level):
