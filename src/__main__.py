@@ -852,9 +852,10 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                     height = img_object.height
                 max_height_css_information = "max-height: " + str(height) + "px;"
                 if img_soup_representation.has_attr("style"):
-                    img_soup_representation["style"] = (
-                        img_soup_representation["style"].strip().rstrip(";") + "; " + max_height_css_information
-                    )
+                    if ";max-height:" not in ";" + img_soup_representation["style"].replace(" ", ""):
+                        img_soup_representation["style"] = (
+                            img_soup_representation["style"].strip().rstrip(";") + "; " + max_height_css_information
+                        )
                 else:
                     img_soup_representation["style"] = max_height_css_information
             # Change src/href tags to ensure we reference the right image:
