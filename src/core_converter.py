@@ -77,8 +77,9 @@ class HighlightRenderer(mistune.HTMLRenderer):
         if text is None:
             text = link
         elif text.startswith("<a "):
-            return (text.split(' href="')[0]
-                    + ' href="' + link + '" rel="nofollow">' + text.split('" rel="nofollow">', 1)[1])
+            left_side, not_left_side = text.split(' href="', 1)
+            _, right_side = not_left_side.split('"', 1)
+            return left_side + ' href="' + link + '"' + right_side
 
         s = '<a href="' + self._safe_url(link) + ('" rel="nofollow"' if not INTERNAL_USE else '"')
         if title:
