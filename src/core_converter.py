@@ -93,33 +93,15 @@ class GitHubFlavoredHighlightRenderer(mistune.HTMLRenderer):
         return "<p>" + text + "</p>\n"
 
 
-# GitHub flavored Block Parser (for making sure that tables within bullet point lists are okay):
-
-class GitHubFlavoredBlockParser(BlockParser):
-    """RULE_NAMES = (
-        BlockParser.RULE_NAMES[:BlockParser.RULE_NAMES.index('block_html')]
-        + ('table', 'np_table')
-        + BlockParser.RULE_NAMES[BlockParser.RULE_NAMES.index('block_html') + 1:]
-    )
-    TABLE = mistune.plugins.table.TABLE_PATTERN,
-    NP_TABLE = mistune.plugins.table.NP_TABLE_PATTERN,"""
-    # ^ These are in modified order to make sure that tables work inside lists.
-
-
-"""instance_of_block_parser = BlockParser()
-# manually apply table plugin to it:
-mistune.plugins.PLUGINS["table"](instance_of_block_parser)
-print(instance_of_block_parser.RULE_NAMES)"""
-
-
-markdown = mistune.Markdown(
-    renderer=GitHubFlavoredHighlightRenderer(escape=False),
-    # block=GitHubFlavoredBlockParser(),
-    plugins=[
-        mistune.plugins.PLUGINS[p]
-        for p in ['strikethrough', 'url'] + (["footnotes"] if INTERNAL_USE else []) + ["table"]
-    ]
+markdown = mistune.create_markdown(
+    renderer=GitHubFlavoredHighlightRenderer,
+    escape=False,
+    plugins=['strikethrough', 'url'] + (["footnotes"] if INTERNAL_USE else []) + ["table"]
 )
 # apply modification to ensure that tables within lists work properly:
 print(markdown.block.rules)
-print(markdown.block.RULE_NAMES)
+before_block_html = markdown.block.rules[:markdown.block.rules.index("block_html")]
+after_block_html = markdown.block.rules[markdown.block.rules.index("block_html") + 1:][:-2]
+fixed_order_of_rules = before_block_html + ["table", "np_table"] + after_block_html
+markdown.block.rules = fixed_order_of_rules
+print(markdown.block.rules)
