@@ -917,7 +917,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             from pygments.formatters import html as pygments_html
             github_min_css += pygments_html.HtmlFormatter().get_style_defs('.highlight')\
                 .replace("\n", "").replace(";", " !important;").replace(" }", " !important }")
-            print(github_min_css)
         with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
             to_f.write(github_min_css)
     with open_local("code-navigation-banner-illo.svg", "r") as from_f:

@@ -14,17 +14,21 @@ except ImportError:
         "OFFLINE conversion requires 'mistune' package >= 2.0.0rc1!\n\ttry running: pip3 install mistune>=2.0.0rc1")
 
 if int(mistune.__version__.split(".")[0]) == 0 or mistune.__version__.startswith("2.0.0a"):
-    # ^ more specific than testing for the presence of `mistune.scanner`.
+    # ^ more specific than testing for the presence of `mistune.scanner` and `mistune.block_parser`.
     raise ImportError(
         "OFFLINE conversion requires 'mistune' package >= 2.0.0rc1!\n\ttry running: pip3 install mistune>=2.0.0rc1")
+
 from mistune.scanner import escape_html
+from mistune.block_parser import BlockParser
 
 
 # This is False, and True enables some things I personally find endearing to have in a converter:
 INTERNAL_USE = False
 
 
-class HighlightRenderer(mistune.HTMLRenderer):
+# GitHub flavored renderer (mainly for syntax highlighting and adding links around images):
+
+class GitHubFlavoredHighlightRenderer(mistune.HTMLRenderer):
     HARMFUL_PROTOCOLS = {
         'javascript:',
         'vbscript:',
@@ -41,12 +45,6 @@ class HighlightRenderer(mistune.HTMLRenderer):
             lexer = get_lexer_by_name(language, stripall=True)
             formatter = pygments_html.HtmlFormatter()
             highlighted = highlight(code, lexer, formatter)
-            """highlighted_soup = bs4.BeautifulSoup(highlighted, "html.parser")
-            for code_soup_element in highlighted_soup.find_all("span"):
-                if code_soup_element.has_attr("class"):
-                    code_soup_element["class"] = ["pl-" + code_soup_element["class"][0]]
-            highlighted_soup.find("div")["class"].append("highlight-source-" + language.replace("+", "p"))
-            return highlighted_soup.__str__()"""
             return highlighted
         return '<pre><code>' + mistune.escape(code) + '</code></pre>'
 
@@ -55,10 +53,9 @@ class HighlightRenderer(mistune.HTMLRenderer):
         id_from_title = heading_name_to_id_value(text)
         full_element = (
                 "<" + tag  # + " id=\"user-content-" + id_from_title + "\""
-                + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\"" + "#"
-                + ("user-content-" if INTERNAL_USE else "") + id_from_title + "\" id=\"user-content-" + id_from_title
-                + "\">" + "<span aria-hidden=\"true\" class=\"octicon octicon-link\"></span></a>" + text + "</" + tag
-                + ">\n"
+                + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\"" + "#user-content-" + id_from_title
+                + "\" id=\"user-content-" + id_from_title + "\">"
+                + "<span aria-hidden=\"true\" class=\"octicon octicon-link\"></span></a>" + text + "</" + tag + ">\n"
         )
         return full_element
 
@@ -96,6 +93,33 @@ class HighlightRenderer(mistune.HTMLRenderer):
         return "<p>" + text + "</p>\n"
 
 
-markdown = mistune.create_markdown(renderer=HighlightRenderer(), escape=False,
-                                   plugins=['strikethrough', 'url']
-                                           + (["footnotes"] if INTERNAL_USE else []) + ["table"])
+# GitHub flavored Block Parser (for making sure that tables within bullet point lists are okay):
+
+class GitHubFlavoredBlockParser(BlockParser):
+    """RULE_NAMES = (
+        BlockParser.RULE_NAMES[:BlockParser.RULE_NAMES.index('block_html')]
+        + ('table', 'np_table')
+        + BlockParser.RULE_NAMES[BlockParser.RULE_NAMES.index('block_html') + 1:]
+    )
+    TABLE = mistune.plugins.table.TABLE_PATTERN,
+    NP_TABLE = mistune.plugins.table.NP_TABLE_PATTERN,"""
+    # ^ These are in modified order to make sure that tables work inside lists.
+
+
+"""instance_of_block_parser = BlockParser()
+# manually apply table plugin to it:
+mistune.plugins.PLUGINS["table"](instance_of_block_parser)
+print(instance_of_block_parser.RULE_NAMES)"""
+
+
+markdown = mistune.Markdown(
+    renderer=GitHubFlavoredHighlightRenderer(escape=False),
+    # block=GitHubFlavoredBlockParser(),
+    plugins=[
+        mistune.plugins.PLUGINS[p]
+        for p in ['strikethrough', 'url'] + (["footnotes"] if INTERNAL_USE else []) + ["table"]
+    ]
+)
+# apply modification to ensure that tables within lists work properly:
+print(markdown.block.rules)
+print(markdown.block.RULE_NAMES)
