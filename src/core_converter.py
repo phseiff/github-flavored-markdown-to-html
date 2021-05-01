@@ -100,4 +100,8 @@ markdown = mistune.create_markdown(
 )
 
 # apply modification to ensure that tables within lists work properly:
-markdown.block.list_rules += ['table', 'nptable']
+try:
+    markdown.block.list_rules += ['table', 'nptable']
+except:
+    raise Exception("If you see this exception, it means mistune (a dependency) broke something in an update.\n"
+                    + "Please report the issue in GitHub, and I'll look into it.")
