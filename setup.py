@@ -5,7 +5,7 @@ import glob
 
 setup(
     name='gh_md_to_html',
-    version='1.11.4',
+    version='1.11.5',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",

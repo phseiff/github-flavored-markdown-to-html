@@ -93,15 +93,11 @@ class GitHubFlavoredHighlightRenderer(mistune.HTMLRenderer):
         return "<p>" + text + "</p>\n"
 
 
+# build a markdown renderer/parser instance for our purpose:
 markdown = mistune.create_markdown(
-    renderer=GitHubFlavoredHighlightRenderer,
-    escape=False,
+    renderer=GitHubFlavoredHighlightRenderer(),
     plugins=['strikethrough', 'url'] + (["footnotes"] if INTERNAL_USE else []) + ["table"]
 )
+
 # apply modification to ensure that tables within lists work properly:
-print(markdown.block.rules)
-before_block_html = markdown.block.rules[:markdown.block.rules.index("block_html")]
-after_block_html = markdown.block.rules[markdown.block.rules.index("block_html") + 1:][:-2]
-fixed_order_of_rules = before_block_html + ["table", "np_table"] + after_block_html
-markdown.block.rules = fixed_order_of_rules
-print(markdown.block.rules)
+markdown.block.list_rules += ['table', 'nptable']
