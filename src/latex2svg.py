@@ -100,8 +100,8 @@ def latex2svg(code, params=default_params, working_directory=None):
         try:
             ret.check_returncode()
         except subprocess.CalledProcessError:
-            raise Exception("LaTeX failed with error:", str(ret.stderr, encoding="UTF-8"),
-                            "\nThis happened whilst rendering formula $" + code + "$.")
+            raise RuntimeError("LaTeX failed with error:", str(ret.stderr, encoding="UTF-8"),
+                               "\nThis happened whilst rendering formula $" + code + "$.")
     except FileNotFoundError:
         raise RuntimeError('latex not found')
 
@@ -118,8 +118,8 @@ def latex2svg(code, params=default_params, working_directory=None):
         try:
             ret.check_returncode()
         except subprocess.CalledProcessError:
-            raise Exception("dvisvgm failed with error:", str(ret.stderr, encoding="UTF-8"),
-                            "\nThis happened whilst rendering formula $" + code + "$.")
+            raise RuntimeError("dvisvgm failed with error:", str(ret.stderr, encoding="UTF-8"),
+                               "\nThis happened whilst rendering formula $" + code + "$.")
 
     except FileNotFoundError:
         raise RuntimeError('dvisvgm not found')

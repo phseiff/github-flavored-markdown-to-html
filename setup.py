@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 from setuptools import setup
-import glob
+# import glob
 
 setup(
     name='gh_md_to_html',
-    version='1.11.6',
+    version='1.11.7',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
