@@ -1453,6 +1453,10 @@
 	border-collapse: collapse
 }
 
+.gist table {
+	border-collapse: collapse;
+}
+
 .gist .blob-wrapper tr:first-child td {
 	padding-top: 4px
 }
