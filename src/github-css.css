@@ -1453,7 +1453,10 @@
 	border-collapse: collapse
 }
 
-.gist table {
+.gist table,
+.gist table tr,
+.gist table tr td,
+.gist table tr th {
 	border-collapse: collapse;
 }
 
