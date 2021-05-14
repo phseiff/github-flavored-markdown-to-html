@@ -387,13 +387,21 @@ As with all of my projects, feedback (even if it is just something small like te
 You can just drop an issue with your feedback, short and non-formal, or even email me if you don't want to raise an issue for some reason.
 I do not plan on adding features in the future at the moment, but I am always open to fixing and tweaking existing features, documentation et cetera, and I would obviously love to hear your feature suggestions even if I do not plan on adding them in the near future.
 
+## Me supporting you & You supporting me
+
+I am generally very responsive when it comes to GitHub issues, and I take them very serious and try to solve them ASAP.
+If you run into bugs, weird behaviors, installation errors and the like whilst using my tool, don't hesitate to [tell me in an issue](https://github.com/phseiff/github-flavored-markdown-to-html/issues/new), so I can fix the problem!
+
+If you found this tool useful, please consider starring it on GitHub to show me your appreciation!
+I would also appreciate if you told me about issues you encountered even if you managed to fix them in your own copy of the code, so I can fix them in this repo, too.
+
 ## Known Usages
 
 This tool is already used by
 
 * [myself](https://github.com/phseiff) (for homework assignments in pdf-format four times a week, so you can rest assured that yes, the person
   maintaining it is also using it themselves)
-* [my website](https://phseiff.com) (uses it in its website builder)
+* [my website](https://phseiff.com) (uses it in its website builder, as detailed in [this blog post of mine](https://phseiff.com/e/why-i-like-my-website/))
 * feel free to tell me via an issue if you want to be included in this list!
 
 ## Further reading
