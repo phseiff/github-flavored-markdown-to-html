@@ -138,7 +138,11 @@ in Python.
 ### Documentation
 
 All arguments and how they work are documented in the help text of the program, which looks
-like this:
+like the following.
+
+Please note that the options are listed ordered by relevance, and all of them have sensible defaults, so don't feel overwhelmed by how many there are;
+you can just read through them until you find what you where looking for, and safely ignore the rest.<br/>
+Most of the options are meant to customize default behavior, so none of them are mandatory for most use cases.
 
 ```
 usage: __main__.py [-h] [-t {file,repo,web,string}]
