@@ -9,6 +9,17 @@ from css_html_js_minify import process_single_css_file
 
 process_single_css_file("src/github-css.css")
 
+with open("setup.py") as setup_file:
+    setup_file_content = setup_file.read()
+    version = setup_file_content.split("version='")[1].split("'")[0]
+    assert (len(version.split(".")) == 3
+            and version.split(".")[0].isnumeric()
+            and version.split(".")[1].isnumeric()
+            and version.split(".")[2].isnumeric())
+    version = "v" + version
+    tags = subprocess.getoutput("git tag --list").split()
+    add_version = version not in tags
+
 for command in [
     "python3 -m pip uninstall -y gh-md-to-html",
     "sudo python3 -m pip uninstall -y gh-md-to-html",
@@ -16,7 +27,9 @@ for command in [
     "gh-md-to-html --help",
     "git add *",
     "git commit -m \"" + sys.argv[1] + "\"",
+    ("git tag -a " + version + " -m \"" + sys.argv[1] + "\"") if add_version else "echo 'no new version to be tagged.'",
     "git push",
+    "git push --tags",
     "pip3 install ."
 ]:
     print("command:", command)
