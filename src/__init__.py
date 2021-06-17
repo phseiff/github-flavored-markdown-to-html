@@ -30,6 +30,11 @@ import html
 import warnings
 from .latex2svg import latex2svg
 from .helpers import heading_name_to_id_value
+try:
+    import tidylib
+    imported_tidylib = True
+except (ImportError, ModuleNotFoundError):
+    imported_tidylib = False
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
 DEBUG = False  # weather to print debug information
@@ -570,7 +575,7 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
          formulas_supporting_darkreader=False, extra_css=None,
          core_converter: typing.Union[str, typing.Callable] = markdown_to_html_via_github_api,
          compress_images=False, enable_image_downloading=True, box_width=None, toc=False, dont_make_images_links=False,
-         soft_wrap_in_code_boxes=False, suppress_online_fallbacks=False):
+         soft_wrap_in_code_boxes=False, suppress_online_fallbacks=False, validate_html=False):
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
@@ -951,6 +956,15 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     with open_local("code-navigation-banner-illo.svg", "r") as from_f:
         with open(os.path.join(abs_css_paths, "code-navigation-banner-illo.svg"), "w") as to_f:
             to_f.write(from_f.read())
+
+    # check whether html is valid if we have the necessary dependency installed.
+    if imported_tidylib and validate_html:
+        _, errors = tidylib.tidy_document(html_rendered, options={'numeric-entities': 1})
+        if errors:
+            warnings.warn("The generated HTML is not entirely valid. This should not be an issue, but you ca still\n"
+                          + "raise an issue on GitHub for it"
+                          + "(https://github.com/phseiff/github-flavored-markdown-to-html/issues).\n"
+                          + str(errors))
 
     # save html where we want it to be:
     file_name_origin = md_origin.split("/")[-1].split(os.sep)[-1].rsplit(".", 1)[0]
