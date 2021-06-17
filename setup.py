@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='gh_md_to_html',
-    version='1.14.0',
+    version='1.15.0',
     description='Github-flavored Markdown to html python and command line interface.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
