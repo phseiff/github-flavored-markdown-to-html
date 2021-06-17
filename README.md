@@ -135,10 +135,13 @@ html_as_a_string = gh_md_to_html.core_converter.markdown(your_markdown_as_a_stri
 
 in Python.
 
+<!--
+If you call `gh-md-to-html foo.md` without any additional options, you will get a file called `foo.html` in the same directory as `foo.md`, with all the images referenced in `foo.md` in a folder called `images` and the required CSS in a folder called `github-markdown-css` (both linked by `foo.html` using absolute relative links).
+-->
+
 ### Documentation
 
-All arguments and how they work are documented in the help text of the program, which looks
-like the following.
+All arguments and how they work are documented in the help text of the program, which looks like the following.
 
 Please note that the options are listed ordered by relevance, and all of them have sensible defaults, so don't feel overwhelmed by how many there are;
 you can just read through them until you find what you where looking for, and safely ignore the rest.<br/>
