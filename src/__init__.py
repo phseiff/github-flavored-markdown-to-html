@@ -1003,6 +1003,26 @@ https://pypi.org/project/pdfkit/""")
                             + " https://wkhtmltopdf.org/downloads.html")
             warnings.warn(warning_text, Warning)
 
+        # Make code boxes soft wrap rather than use horizontal scrollbars in the generated pdfs, since pdf doesn't
+        #  support using scrollbars in their intended way:
+        html_rendered += """
+        <style>
+        .gist pre {
+             white-space: pre-wrap !important;
+             white-space: -moz-pre-wrap !important;
+             white-space: -pre-wrap !important;
+             white-space: -o-pre-wrap !important;
+             word-wrap: break-word !important;
+        }
+        .gist code {
+             white-space: pre-wrap !important;
+             white-space: -moz-pre-wrap !important;
+             white-space: -pre-wrap !important;
+             white-space: -o-pre-wrap !important;
+             word-wrap: break-word !important;
+        }
+        </style>"""
+
         # Finally convert it:
         # (this saving and then converting ensures we don't convert links like https:foo to
         # absolute_path_to_file_location/https://foo)
@@ -1013,7 +1033,7 @@ https://pypi.org/project/pdfkit/""")
             os.path.join(destination, output_pdf),
             options=dict() if DEBUG else options,
         )
-        os.remove(os.path.join(abs_destination, output_pdf + ".html"))
+        # os.remove(os.path.join(abs_destination, output_pdf + ".html"))
 
     # return the result
     return html_rendered
