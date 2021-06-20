@@ -337,6 +337,9 @@ optional arguments:
 
 ```
 
+In cases where an emoji shortcode isn't valid, a warning is risen;
+in case you want this to raise an error instead, you can catch the warning and do so manually yourself.
+
 As mentioned above, any image referenced in the markdown file is stored locally and
 referenced using a root-relative hyperlinks in the generated html. How the converter
 guesses the location of the image is shown in the following table, with the type of imagelink noted on the top and the type of input markdown noted on the left:

@@ -19,6 +19,7 @@ import traceback
 import subprocess
 import json
 import webcolors
+import emoji
 from ast import literal_eval as make_tuple
 import bs4
 from bs4 import BeautifulSoup
@@ -79,7 +80,94 @@ def get_fitting_replacement(thing_to_replace: str, table_of_replacement: dict, t
     return replacement
 
 
-def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
+def shortcode_to_emoji(shortcode: str, emoji_support_level):
+    if emoji_support_level == 0:
+        return shortcode
+    else:
+        if "." not in shortcode:
+            # we take this as a hint that this is a non-custom emoji:
+            if shortcode not in emoji.EMOJI_ALIAS_UNICODE_ENGLISH:
+                warnings.warn("`" + shortcode + "` is not a valid emoji shortcode.\n"
+                              + "This does no harm; we are just letting you know in case you intended it to be an emoji"
+                              + " shortcode and mistyped it accidentally."
+                              + "")
+            return emoji.emojize(shortcode, use_aliases=True, variant="emoji_type")
+        else:
+            # we take this as a hint that this is a custom emoji:
+            escaped_shortcode = shortcode[1:-1].replace("'", "\'").replace('"', '\"')
+            emoji_name = escaped_shortcode.split("/")[-1].split("?")[0].split("&")[0]
+            title = emoji_name.rsplit(".", 1)[0].replace("-", " ").replace("_", " ")
+            for i in range(len(title)-1, -1, -1):
+                if title[i].isupper():
+                    title = title[:i] + " " + title[i:]
+            return ("<img src='" + escaped_shortcode + "' "
+                    + "title=':" + emoji_name + ":' "
+                    + 'alt="' + title + '" style="width:1em; height:1em;" is_emoji="true">')
+
+
+STD_EMOJI_CHARS = "-" + "_" + string.ascii_uppercase + string.ascii_lowercase + string.digits
+EXT_EMOJI_CHARS = "-._~/?#[]@!$&'()*+,;=" + string.ascii_uppercase + string.ascii_lowercase + string.digits  # <- no :
+EMOJI_WHITESPACE = ("\n", "\t", " ")
+
+
+def proceed_emoji_parsing(line, i, emoji_replacements, emoji_start, emoji_state, md, support_custom_emojis=False):
+    # values for emoji_state:
+    #  0: not within an emoji and not a whitespace
+    #  1: in whitespace
+    #  2: at : in front of an emoji
+    #  3: within text of emoji
+    #  4: at closing : of emoji
+    success = False
+    if emoji_state == 0:  # <- was not within an emoji and not a whitespace
+        if line[i] in EMOJI_WHITESPACE:
+            emoji_state = 1
+    elif emoji_state == 1:  # <- was in whitespace
+        if line[i] == ":" and is_not_escaped(line, i):
+            emoji_state = 2
+            emoji_start = i
+        elif line[i] not in EMOJI_WHITESPACE:
+            emoji_state = 0
+    elif emoji_state == 2:  # <- was at a : sign
+        if line[i] in (STD_EMOJI_CHARS if not support_custom_emojis else EXT_EMOJI_CHARS):
+            emoji_state = 3
+        elif line[i] in EMOJI_WHITESPACE:
+            emoji_state = 1
+        else:
+            emoji_state = 0
+    elif emoji_state == 3:  # <- was within an emoji
+        if line[i] in (STD_EMOJI_CHARS if not support_custom_emojis else EXT_EMOJI_CHARS):
+            emoji_state = 3
+        elif line[i] == ":" and support_custom_emojis and (i != len(line)-1) and (line[i+1] in EXT_EMOJI_CHARS + ":"):
+            emoji_state = 3  # <- support : in extended emojis
+        elif line[i] in EMOJI_WHITESPACE:
+            emoji_state = 1
+        elif line[i] == ":":
+            if i == len(line) - 1:
+                i += 1
+                success = True
+            else:
+                emoji_state = 4
+        else:
+            emoji_state = 0
+    elif emoji_state == 4:  # <- was at the trailing : of an emoji
+        if line[i] in EMOJI_WHITESPACE:
+            success = True
+        else:
+            emoji_state = 0
+    if success:
+        emoji_state = 1
+        emoji_shortcode = line[emoji_start:i]
+        replacement = get_fitting_replacement(emoji_shortcode, emoji_replacements, md, "e")
+        emoji_replacements[replacement] = emoji_shortcode
+        line_new = line[:emoji_start] + replacement + line[i:]
+        i += len(line_new) - len(line)
+        line = line_new
+        if i == len(line):
+            i -= 1
+    return line, i, emoji_replacements, emoji_start, emoji_state
+
+
+def find_and_replace_formulas_in_markdown(md: str, support_formulas=True, support_custom_emojis=False):
     """Takes markdown as a string and returns the markdown, but every formula is replaced with a random string, as well
     as a dict to translate these strings back to the formulas. This is done to evade the problem that special characters
     in formulas should not be escaped and that they should not be interpreted, e.g. as code etc.
@@ -95,8 +183,13 @@ def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
     special_characters_in_code = dict()
     headings = list()
     inside_multiline_code = False
+    # specifically for emojis:
+    emoji_replacements = dict()
+
     # iterate over the document's lines:
     for l_num in range(len(md_lines)):
+        emoji_state = 1  # 1 because the -1st letter of ever line is considered to be whitespace.
+        emoji_start = 0
         line = md_lines[l_num]
         # switch between multiline code blocks and things that aren't multiline code blocks:
         if line.strip().startswith("```"):
@@ -104,17 +197,36 @@ def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
             continue
         # we need to look for formulas, inline code blocks and table of content indicators outside:
         if not inside_multiline_code:
+            if DEBUG:
+                print(line)
             inside_inline_code = False
             formula_start = 0
             in_formula = False
-            # are we add a heading? if yes, register that and move on to the next line.
+            # are we at a heading? if yes, register that and move on to the next line.
             if line.strip().startswith("#") and " " in line and line.split(" ")[0] == "#" * len(line.split(" ")[0]):
+                # search for emojis:
+                i = -1
+                if DEBUG:
+                    print("\n" + line)
+                while i < len(line) - 1:
+                    i += 1
+                    if line[i] == "`" and is_not_escaped(line, i):
+                        inside_inline_code = not inside_inline_code
+                    if not inside_inline_code:
+                        line, i, emoji_replacements, emoji_start, emoji_state = proceed_emoji_parsing(
+                            line, i, emoji_replacements, emoji_start, emoji_state, md, support_custom_emojis)
+
                 headings.append((len(line.split(" ")[0]), line.split(" ", 1)[1]))
+                md_lines[l_num] = line
                 continue
             # we simply iterate over all characters of the line now, setting and unsetting flags as we pass them.
             i = -1
             while i < len(line) - 1:
                 i += 1
+                # do emoji checks:
+                if not inside_inline_code and not in_formula:
+                    line, i, emoji_replacements, emoji_start, emoji_state = proceed_emoji_parsing(
+                        line, i, emoji_replacements, emoji_start, emoji_state, md, support_custom_emojis)
                 # check whether a formula starts or ends here (only if formulas support is activated):
                 if support_formulas and line[i] == "$" and is_not_escaped(line, i) and not inside_inline_code:
                     if not in_formula:
@@ -144,8 +256,12 @@ def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
                 # handle escaped formula-signs if formula support is activated:
                 if support_formulas:
                     line = line.replace("\\$", "$")
+                if DEBUG:
+                    print(emoji_state, end="")
             # encode umlauts outside of inline code blocks:
             line = str(line.encode('ascii', 'xmlcharrefreplace'), encoding="utf-8")
+            if DEBUG:
+                print("\n")
         # search for non-ascii characters if we are in a multiline code block:
         else:
             for character in set(line):
@@ -156,7 +272,7 @@ def find_and_replace_formulas_in_markdown(md: str, support_formulas=True):
                     line = line.replace(character, replacement)
         md_lines[l_num] = line
 
-    return "\n".join(md_lines), formulas, special_characters_in_code, headings
+    return "\n".join(md_lines), formulas, special_characters_in_code, headings, emoji_replacements
 
 
 def header_name_to_link_to_header(header_name: str) -> str:
@@ -226,8 +342,8 @@ def render_toc(md_content: str, headings: typing.List[typing.Tuple[int, str]]) -
 
 # a stand-alone function to render tocs in markdown files in case one wants to do just that:
 
-def render_toc_in_md_file_stand_alone(md_content: str) -> str:
-    _, _, _, headers = find_and_replace_formulas_in_markdown(md_content)
+def render_toc_in_md_file_stand_alone(md_content: str, support_custom_emojis=False) -> str:
+    _, _, _, headers, _ = find_and_replace_formulas_in_markdown(md_content, support_custom_emojis)
     return render_toc(md_content, headers)
 
 
@@ -294,7 +410,8 @@ def formula2svg(formula, amount_of_svg_formulas):
 # Find and render formulas in the html code, and replace them correctly:
 
 
-def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_characters_in_code: dict):
+def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_characters_in_code: dict,
+                                     emoji_replacements: dict, emoji_support: int):
     """Takes some html (generated from markdown by the online github API) and a dictionary which maps a number of
     sequences to a number of formulas, and replaces each sequence with a LaTeX-rendering of the corresponding formula.
     The third parameter is a dictionary mapping replacements to special characters for use in code blocks.
@@ -315,6 +432,15 @@ def find_and_render_formulas_in_html(html_text: str, formulas: dict, special_cha
         html_text = html_text.replace(
             sequence,
             special_character
+        )
+
+    # replace emojis:
+    for sequence, emoji_shortcode in emoji_replacements.items():
+        if DEBUG:
+            print("replace:", sequence, shortcode_to_emoji(emoji_shortcode, emoji_support))
+        html_text = html_text.replace(
+            sequence,
+            shortcode_to_emoji(emoji_shortcode, emoji_support)
         )
 
     return html_text
@@ -575,7 +701,10 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
          formulas_supporting_darkreader=False, extra_css=None,
          core_converter: typing.Union[str, typing.Callable] = markdown_to_html_via_github_api,
          compress_images=False, enable_image_downloading=True, box_width=None, toc=False, dont_make_images_links=False,
-         soft_wrap_in_code_boxes=False, suppress_online_fallbacks=False, validate_html=False):
+         soft_wrap_in_code_boxes=False, suppress_online_fallbacks=False, validate_html=False, emoji_support=1):
+    # check emoji_support parameter:
+    if emoji_support not in (0, 1, 2):
+        raise Exception("--emoji-support must be one of 0, 1 and 2.")
     # set all to defaults:
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
@@ -619,8 +748,11 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         print("\n------------\nOriginal content:\n------------\n\n", md_content)
 
     # replace formulas with random sequences and get a dict to map them back:
-    md_content, formula_mapper, special_chars_in_code_blocks, headings = find_and_replace_formulas_in_markdown(
-        md_content, math)
+    support_custom_emojis = (emoji_support >= 2)
+    md_content, formula_mapper, special_chars_in_code_blocks, headings, emoji_replacements = (
+        find_and_replace_formulas_in_markdown(md_content, math, support_custom_emojis))
+    if DEBUG:
+        print("emoji replacements:", emoji_replacements)
 
     # fail if we need to convert formulas, don't have the necessary dependencies and are suppressing online fallbacks:
     if suppress_online_fallbacks and formula_mapper and raw_formula2svg_online == raw_formula2svg:
@@ -677,7 +809,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         html_content = html_bs4.__str__()
 
     # re-insert formulas in html, this time as proper svg images:
-    html_content = find_and_render_formulas_in_html(html_content, formula_mapper, special_chars_in_code_blocks)
+    html_content = find_and_render_formulas_in_html(html_content, formula_mapper, special_chars_in_code_blocks,
+                                                    emoji_replacements, emoji_support)
 
     if DEBUG:
         print("\n------------\nHtml content (with properly rendered formulas):\n------------\n\n", html_content)
@@ -837,6 +970,9 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                     if img_soup_representation.has_attr("height") and img_soup_representation["height"].endswith("px")
                     else None
                 )
+                if img_soup_representation.has_attr("is_emoji") and img_soup_representation["is_emoji"] == "true":
+                    height = 128
+                    width = 128
                 if height and not width:
                     width = math_module.ceil(height * full_image.width / full_image.height)
                 # If no size is specified and srcset is set, generate a set of resolutions:
@@ -1231,6 +1367,16 @@ def cmd_to_main():
     Setting this option to True turns this behavior off, so images are only hyperlinked to things if it is explicitely
     done.
     """)
+
+    parser.add_argument("--emoji-support", type=int, default=1, help="""
+    Describes which level of emoji shortcode support to use. The available levels are:
+    * 1: The default. Allows the use of emoji shortcodes, e.g. `:thumbs_up:` as a shorthand for `👍️`, comparable to what
+      Discord, Telegram & Co. are doing.
+    * 0: Disable emoji shortcodes.
+    * 2: Enables emoji shortcodes, and additionally allows the use of custom emojis, by adding a link to an image in
+      between two colons (e.g. `:image.png:` will add image.png downscaled to emoji size into the text). These custom
+      emojis are properly affected by the --compress-images option, scaled to a pixel height of max. 128px, and
+      displayed with the same height as the surrounding text.""")
 
     parser.add_argument('-b', '--box-width', nargs="+", action=FuseInputString, help="""
     The text of the rendered file is always displayed in a box, like GitHub READMEs and issues are.
