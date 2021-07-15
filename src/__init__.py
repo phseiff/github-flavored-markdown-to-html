@@ -28,6 +28,7 @@ import math as math_module
 import shutil
 import typing
 import html
+import uuid
 import warnings
 from .latex2svg import latex2svg
 from .helpers import heading_name_to_id_value
@@ -632,13 +633,24 @@ def make_unused_name(base_file_name, file_name_addition, already_used_filenames,
     If ending is specified (in the form .y), the generated file name will be foo.bar.y instead of foo.bar.x."""
     def make_final_filename(name, add):
         return name.rsplit(".", 1)[0] + add + "." + name.rsplit(".", 1)[1]
+    def resulting_name_too_long(name, add):
+        return len(name) + len(add) > 260
+    def resulting_name_already_used(name, add):
+        return make_final_filename(name, add) in already_used_filenames
+
     if hash_of_image in hashes_to_filenames:
         return hashes_to_filenames[hash_of_image]
-    if not ending:
+    if ending is None:
         ending = "." + base_file_name.rsplit(".", 1)[-1]
     base_file_name = base_file_name.rsplit(".", 1)[0] + ending
-    while make_final_filename(base_file_name, file_name_addition) in already_used_filenames:
-        base_file_name = make_final_filename(base_file_name, "_")
+    while (
+            resulting_name_already_used(base_file_name, file_name_addition)
+            or resulting_name_too_long(base_file_name, file_name_addition)
+    ):
+        if resulting_name_already_used(base_file_name, file_name_addition):
+            base_file_name = make_final_filename(base_file_name, "_")
+        if resulting_name_too_long(base_file_name, file_name_addition):
+            base_file_name = base_file_name[:32] + "-" + uuid.uuid4().hex + "." + ending
     base_file_name = make_final_filename(base_file_name, file_name_addition)
     already_used_filenames.add(base_file_name)
     hashes_to_filenames[hash_of_image] = base_file_name
@@ -870,9 +882,17 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             image_src = original_markdown_image_src = img_soup_representation.get("src")
             if image_src == "":
                 continue  # <-- In case some images with no source where injected for some reason
-            save_image_as = re.split("[/\\\]", image_src)[-1]  # <--  take only the last element of the path
+            if img_soup_representation.has_attr("data-canonical-src"):
+                # work around for GitHub's image caching, which results in absurdly long image names.
+                save_image_as = img_soup_representation.get("data-canonical-src")
+            else:
+                save_image_as = image_src
+            print("image_src:", save_image_as)
+            save_image_as = save_image_as.split("?")[0]  # <-- remove the extra url parts
+            save_image_as = re.split("[/\\\]", save_image_as)[-1]  # <--  take only the last element of the path
             save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
             save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
+            print("original_save_image_s:", save_image_as)
             if image_src.startswith("./"):
                 image_src = image_src[2:]
 
@@ -945,8 +965,11 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             except AttributeError:
                 extension = ".svg"
             # ensure we use no image name twice & finally save the image:
+            print("base_image_name:", save_image_as + extension)
             save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
                                              hash_image(img_object))  # <-- file name to save as
+            print("save_image_as:", save_image_as)
+            print("\n")
             cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
             location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-how we call that path in the html
             if extension != ".svg":
