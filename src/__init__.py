@@ -887,12 +887,14 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                 save_image_as = img_soup_representation.get("data-canonical-src")
             else:
                 save_image_as = image_src
-            print("image_src:", save_image_as)
+            if DEBUG:
+                print("new image_src:", save_image_as)
             save_image_as = save_image_as.split("?")[0]  # <-- remove the extra url parts
             save_image_as = re.split("[/\\\]", save_image_as)[-1]  # <--  take only the last element of the path
             save_image_as = save_image_as.rsplit(".", 1)[0]  # <-- remove the extension
             save_image_as = re.sub(r'(?u)[^-\w.]', '', save_image_as)  # <-- remove disallowed characters
-            print("original_save_image_s:", save_image_as)
+            if DEBUG:
+                print("-> original_save_image_s:", save_image_as)
             if image_src.startswith("./"):
                 image_src = image_src[2:]
 
@@ -965,11 +967,11 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             except AttributeError:
                 extension = ".svg"
             # ensure we use no image name twice & finally save the image:
-            print("base_image_name:", save_image_as + extension)
             save_image_as = make_unused_name(save_image_as + extension, "", saved_image_names, hashes_to_images,
                                              hash_image(img_object))  # <-- file name to save as
-            print("save_image_as:", save_image_as)
-            print("\n")
+            if DEBUG:
+                print("-> save_image_as:", save_image_as)
+                print("")
             cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
             location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-how we call that path in the html
             if extension != ".svg":
