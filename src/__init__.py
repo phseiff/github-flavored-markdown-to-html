@@ -1458,7 +1458,7 @@ def cmd_to_main():
     try:
         with open_local("help.txt", "w", encoding='utf-8') as help_file:
             help_file.write(help_text)
-    except OSError:
+    except (OSError, UnicodeEncodeError):
         pass  # running an installation installed with sudo.
 
     # Print help text if requested.
