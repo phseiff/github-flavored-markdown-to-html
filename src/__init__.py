@@ -43,8 +43,8 @@ DEBUG = False  # weather to print debug information
 HASH_FUNCTION_TO_USE_ON_IMAGES = lambda x: hashlib.md5(x.encode() if type(x) is str else x)
 
 
-def open_local(path, mode):
-    return open(os.path.join(MODULE_PATH, path), mode)
+def open_local(path, *args, **kwargs):
+    return open(os.path.join(MODULE_PATH, path), *args, **kwargs)
 
 
 HELP = open_local("help.txt", "r").read()
@@ -1456,7 +1456,7 @@ def cmd_to_main():
     help_text = "\n".join(help_text_lines)
 
     try:
-        with open_local("help.txt", "w") as help_file:
+        with open_local("help.txt", "w", encoding='utf-8') as help_file:
             help_file.write(help_text)
     except OSError:
         pass  # running an installation installed with sudo.
