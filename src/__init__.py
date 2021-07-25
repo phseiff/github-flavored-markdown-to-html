@@ -47,7 +47,7 @@ def open_local(path, *args, **kwargs):
     return open(os.path.join(MODULE_PATH, path), *args, **kwargs)
 
 
-HELP = open_local("help.txt", "r").read()
+HELP = open_local("help.txt", "r", encoding="utf-8").read()
 
 
 def is_not_escaped(s: str, i: int):
@@ -1458,7 +1458,7 @@ def cmd_to_main():
     try:
         with open_local("help.txt", "w", encoding='utf-8') as help_file:
             help_file.write(help_text)
-    except (OSError, UnicodeEncodeError):
+    except OSError:
         pass  # running an installation installed with sudo.
 
     # Print help text if requested.
