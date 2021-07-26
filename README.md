@@ -102,13 +102,15 @@ Both might require `sudo` on Linux, and you can optionally do
 python3 -m pip install gh-md-to-html[pdf_export]
 ```
 
-and [install wkhtmltopdf](https://wkhtmltopdf.org/downloads.html) to get the optional pdf-conversion feature and convert markdown files to pdf, and/or
+and [install wkhtmltopdf](https://wkhtmltopdf.org/downloads.html) (v0.12.6 or greater) to get the optional pdf-conversion feature and convert markdown files to pdf, and/or
 
 ```
 python3 -m pip install gh-md-to-html[offline_conversion]
 ```
 
 to get the optional offline-conversion feature up and running.
+
+**If you are on Windows**, you might have to add `wkhtmltopdf` to your path in your current working directory in order to get pdf conversion to work, e.g. with `PATH=%PATH%;c:/program files/wkhtmltopdf/bin` or something similar, depending on your installation location.
 
 ## Usage
 
