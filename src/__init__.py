@@ -609,8 +609,8 @@ def hash_image(img):
     for pixel in list(img.getdata()):
         try:
             pixel_data += list(pixel)
-        catch TypeError:
-            pixel_data += pixel
+        except TypeError:
+            pixel_data += [pixel]
     pixel_data_string = str(bytes(pixel_data), encoding="iso-8859-1")
     pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
 
