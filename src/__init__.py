@@ -11,7 +11,7 @@ import argparse
 import sys
 import os
 import shellescape
-from PIL import Image
+from PIL import Image, ImageSequence
 import PIL
 from io import BytesIO
 from urllib.parse import quote
@@ -37,9 +37,15 @@ try:
     imported_tidylib = True
 except (ImportError, ModuleNotFoundError):
     imported_tidylib = False
+try:
+    import difflib
+    imported_difflib = True
+except (ImportError, ModuleNotFoundError):
+    imported_difflib = False
 
 MODULE_PATH = os.path.join(*os.path.split(__file__)[:-1])
-DEBUG = False  # weather to print debug information
+DEBUG = False  # whether to print debug information
+DEBUG_HASHES = False
 HASH_FUNCTION_TO_USE_ON_IMAGES = lambda x: hashlib.md5(x.encode() if type(x) is str else x)
 
 
@@ -601,19 +607,25 @@ def find_fitting_hash_function(amount_of_images):
 # Hash an image:
 
 
-def hash_image(img):
+def hash_image(img, return_unhashed=False):
     if type(img) in (str, bytes):
         return HASH_FUNCTION_TO_USE_ON_IMAGES(img)
 
     pixel_data = list()
-    for pixel in list(img.getdata()):
-        try:
+    frames_durations = list()
+    for frame in ImageSequence.Iterator(img):
+        frame = frame.convert("RGBA")
+        if "duration" in frame.info:
+            frames_durations.append(str(frame.info["duration"]))
+        for pixel in list(frame.getdata()):
             pixel_data += list(pixel)
-        except TypeError:
-            pixel_data += [pixel]
     pixel_data_string = str(bytes(pixel_data), encoding="iso-8859-1")
-    pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None))
+    pixel_data_string += "||" + str(img.size) + "||" + (str(img.format.lower() if img.format else None)) + (
+        ("||" + str(",".join(frames_durations))) if frames_durations else ""
+    )
 
+    if return_unhashed:
+        return pixel_data_string
     return HASH_FUNCTION_TO_USE_ON_IMAGES(pixel_data_string)
 
 
@@ -642,6 +654,8 @@ def make_unused_name(base_file_name, file_name_addition, already_used_filenames,
         return make_final_filename(name, add) in already_used_filenames
 
     if hash_of_image in hashes_to_filenames:
+        if DEBUG_HASHES:
+            print("image already present as", hashes_to_filenames[hash_of_image])
         return hashes_to_filenames[hash_of_image]
     if ending is None:
         ending = "." + base_file_name.rsplit(".", 1)[-1]
@@ -978,14 +992,35 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
             location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-how we call that path in the html
             if extension != ".svg":
-                img_object.save(cached_image_path)
+                if extension == ".gif":
+                    print(cached_image_path)
+                img_object.save(cached_image_path, save_all=(extension == ".gif"))
             else:
                 with open(cached_image_path, "wb") as img_out_file:
                     img_out_file.write(img_object)
 
+            # Check if hashing worked correctly:
+            if DEBUG_HASHES:
+                import time
+                t = time.time()
+                if extension != ".svg":
+                    hash1 = hash_image(Image.open(cached_image_path), return_unhashed=True)
+                else:
+                    hash1 = hash_image(open(cached_image_path, "rb").read(), return_unhashed=True)
+                hash2 = hash_image(img_object, return_unhashed=True)
+                if hash1 != hash2:
+                    print(type(hash1))
+                    warnings.warn(
+                        "image " + cached_image_path + " hashed incorrectly (not dramatic, but you cans till raise an\
+                        issue for this)."
+                        + (("hash difference:\n" + "".join(difflib.ndiff(hash1, hash2))) if imported_difflib else "")
+                        + "\n"
+                    )
+                print("time to compare hashes:", time.time() - t)
+
             # Open the final image and do compression, if it was specified to do so:
             height = None
-            if compression_information and extension != ".svg":
+            if compression_information and extension not in (".svg", ".gif"):
                 full_image = Image.open(cached_image_path)
                 # Determine the images' width if any is specified:
                 width = (
