@@ -739,6 +739,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
     compression_information = compress_images_input_to_dict(compress_images)
+    if website_root == "":
+        website_root = "."
     if website_root is None:
         website_root = ""
     if destination is None:
@@ -1356,14 +1358,14 @@ def cmd_to_main():
     * web: takes an url to a markdown file
     * string: takes a string containing the files content"""))
 
-    parser.add_argument('-w', '--website-root', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-w', '--website-root', nargs="*", action=FuseInputString, help="""
     Only relevant if you are creating the html for a static website which you manage using git or something similar.
     --website-root is the directory from which you serve your website (which is needed to correctly generate the links
     within the generated html, such as the link pointing to the css, since they are all root-relative),
     and can be a relative as well as an absolute path. Defaults to the directory you called this script from.
     If you intent to view the html file on your laptop instead of hosting it on a static site, website-root should be
-    a dot and destination not set. The reason the generated html files use root-relative links to embed images is that
-    on many static websites, https://foo/bar/index.html can be accessed via https://foo/bar, in which case relative
+    left empty and destination not set. The reason the generated html files use root-relative links to embed images is
+    that on many static websites, https://foo/bar/index.html can be accessed via https://foo/bar, in which case relative
     (non-root-relative) links in index.html will be interpreted as relative to foo instead of bar, which can cause
     images not to load.
     """)
