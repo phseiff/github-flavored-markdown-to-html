@@ -992,8 +992,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             cached_image_path = os.path.join(abs_image_paths, save_image_as)  # <-- path where we save it
             location_of_full_sized_image = image_name_to_image_src(save_image_as)  # <-how we call that path in the html
             if extension != ".svg":
-                if extension == ".gif":
-                    print(cached_image_path)
+                # if extension == ".gif":
+                #     print(cached_image_path)
                 img_object.save(cached_image_path, save_all=(extension == ".gif"))
             else:
                 with open(cached_image_path, "wb") as img_out_file:
@@ -1009,7 +1009,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
                     hash1 = hash_image(open(cached_image_path, "rb").read(), return_unhashed=True)
                 hash2 = hash_image(img_object, return_unhashed=True)
                 if hash1 != hash2:
-                    print(type(hash1))
                     warnings.warn(
                         "image " + cached_image_path + " hashed incorrectly (not dramatic, but you cans till raise an\
                         issue for this)."
@@ -1114,16 +1113,32 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     if DEBUG:
         print("\n------------\nHtml with image links:\n------------\n\n", html_rendered)
 
-    # ensure <a href="#fufu"> gets converted to <a href="#user-content-fufu">:
+    # Add "user-content-" to anchors and internal links.
+
     contains_file_internal_links = False
     html_soup = BeautifulSoup(html_rendered, 'html.parser')
+    for element_soup_representation in html_soup.select("[id]"):
+        id_name = element_soup_representation.get("id")
+        if id_name and not id_name.startswith("user-content-"):
+            element_soup_representation["id"] = "user-content-" + id_name
     for link_soup_representation in html_soup.find_all("a"):
+        # "user-content-"-ify the href-attributes
         link_location = link_soup_representation.get("href")
-        if link_location.startswith("#"):
+        if link_location and link_location.startswith("#") and not link_location.startswith("#user-content-"):
+            # ^ GitHub technically doesn't recognize the last point, but we derive from GitHub's behavior here.
             link_location = "#user-content-" + link_location[1:]
             if not (link_soup_representation.has_attr("class") and link_soup_representation["class"] == ["anchor"]):
                 contains_file_internal_links = True
         link_soup_representation["href"] = link_location
+        # "user-content-"-ify the id-attribute; note that this has precedence over the name attributes.
+        link_id = link_soup_representation.get("id")
+        if link_id:
+            link_soup_representation["name"] = link_id
+            del link_id
+        # "user-content-"-ify the name-attributes
+        link_name = link_soup_representation.get("name")
+        if link_name and not link_name.startswith("user-content-"):
+            link_soup_representation["name"] = "user-content-" + link_name
     html_rendered = html_soup.__str__()
 
     # add correct id to all headings:
