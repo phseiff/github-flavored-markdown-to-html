@@ -730,7 +730,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
          formulas_supporting_darkreader=False, extra_css=None,
          core_converter: typing.Union[str, typing.Callable] = markdown_to_html_via_github_api,
          compress_images=False, enable_image_downloading=True, box_width=None, toc=False, dont_make_images_links=False,
-         soft_wrap_in_code_boxes=False, suppress_online_fallbacks=False, validate_html=False, emoji_support=1):
+         soft_wrap_in_code_boxes=False, suppress_online_fallbacks=False, validate_html=False, emoji_support=1,
+         enable_css_saving =True):
     # check emoji_support parameter:
     if emoji_support not in (0, 1, 2):
         raise Exception("--emoji-support must be one of 0, 1 and 2.")
@@ -746,7 +747,9 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
         if image_paths == "":
             enable_image_downloading = False
         image_paths = destination + (os.sep if destination else "") + "images"
-    if css_paths is None:
+    if not css_paths:
+        if css_paths == "":
+            enable_css_saving = False
         css_paths = "github-markdown-css"
 
     # set all to paths instead of paths relative to website_root:
@@ -756,7 +759,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     abs_css_paths = website_root + (os.sep if website_root else "") + css_paths
 
     # make sure all paths exist:
-    for path in [abs_website_root, abs_destination, abs_image_paths, abs_css_paths]:
+    paths_to_create = [abs_website_root, abs_destination, abs_image_paths, abs_css_paths if enable_css_saving else None]
+    for path in paths_to_create:
         if path:
             os.makedirs(path, exist_ok=True)
 
@@ -850,6 +854,24 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     else:
         footer = ""
 
+    # ensure we have the css and the code navigation banner where we want it to be (anyone knows what this is for?):
+    with open_local("github-css.min.css", "r") as from_f:
+        github_min_css = from_f.read()
+        if core_converter in ("OFFLINE+", "OFFLINE"):
+            # add syntax highlighting css if we use OFFLINE or OFFLINE+ for conversion:
+            from pygments.formatters import html as pygments_html
+            github_min_css += pygments_html.HtmlFormatter().get_style_defs('.highlight') \
+                .replace("\n", "").replace(";", " !important;").replace(" }", " !important }")
+        if soft_wrap_in_code_boxes:
+            # add css to make code boxes soft wrap:
+            github_min_css += CSS_TO_MAKE_CODE_BOXES_WRAP.replace("\n", "").replace("    ", "").replace(": ", ":")
+    if enable_css_saving:
+        with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
+            to_f.write(github_min_css)
+        with open_local("code-navigation-banner-illo.svg", "r") as from_f:
+            with open(os.path.join(abs_css_paths, "code-navigation-banner-illo.svg"), "w") as to_f:
+                to_f.write(from_f.read())
+
     # fill everything into our template, to link the html to the .css-file etc.:
     with open_local("prototype.html", "r") as f:
         possible_id_for_essay = (
@@ -863,9 +885,14 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             footer=footer,
             width_css=(('<style> .gist-file { max-width: ' + box_width + '; margin: 0 auto; } </style>\n')
                        if box_width else ""),
-            extra_css=open(extra_css, "r").read() if extra_css else "",
+            extra_css=((open(extra_css, "r").read() if extra_css else "")
+                       + (("<!-- ~~~~github-flavored css start~~~~ --><style>" + github_min_css
+                           + "</style> <!-- ~~~~github-flavored css end~~~~ -->") if not enable_css_saving else "")),
             id='id="article-' + (possible_id_for_essay if possible_id_for_essay else "") + '"'
         )
+
+    if not enable_css_saving:  # <- do not link to css if we don't want to save it:
+        html_rendered = "\n".join(html_rendered.split("\n")[2:])
 
     if DEBUG:
         print("\n------------\nHtml rendered:\n------------\n\n", html_rendered)
@@ -1154,23 +1181,6 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     if DEBUG:
         print("\n------------\nHtml with fixed internal links:\n------------\n\n", html_rendered)
 
-    # ensure we have the css and the code navigation banner where we want it to be (anyone knows what this is for?):
-    with open_local("github-css.min.css", "r") as from_f:
-        github_min_css = from_f.read()
-        if core_converter in ("OFFLINE+", "OFFLINE"):
-            # add syntax highlighting css if we use OFFLINE or OFFLINE+ for conversion:
-            from pygments.formatters import html as pygments_html
-            github_min_css += pygments_html.HtmlFormatter().get_style_defs('.highlight')\
-                .replace("\n", "").replace(";", " !important;").replace(" }", " !important }")
-        if soft_wrap_in_code_boxes:
-            # add css to make code boxes soft wrap:
-            github_min_css += CSS_TO_MAKE_CODE_BOXES_WRAP.replace("\n", "").replace("    ", "").replace(": ", ":")
-        with open(os.path.join(abs_css_paths, "github-css.css"), "w") as to_f:
-            to_f.write(github_min_css)
-    with open_local("code-navigation-banner-illo.svg", "r") as from_f:
-        with open(os.path.join(abs_css_paths, "code-navigation-banner-illo.svg"), "w") as to_f:
-            to_f.write(from_f.read())
-
     # check whether html is valid if we have the necessary dependency installed.
     if imported_tidylib and validate_html:
         _, errors = tidylib.tidy_document(html_rendered, options={'numeric-entities': 1})
@@ -1234,7 +1244,11 @@ https://pypi.org/project/pdfkit/.""")
 
         # remove the css if we want to save it without css:
         if not style_pdf:
-            html_rendered = "\n".join(html_rendered.split("\n")[2:])
+            if enable_css_saving:
+                html_rendered = "\n".join(html_rendered.split("\n")[2:])
+            else:
+                html_rendered = (html_rendered.rsplit("~~~~github-flavored css start~~~~", 1)[0]
+                                 + html_rendered.rsplit("~~~~github-flavored css end~~~~", 1)[1])
 
         # use <name>-variable in the name
         if "<name>" in output_pdf and origin_type == "string":
@@ -1314,7 +1328,9 @@ def _test():
 def cmd_to_main():
     # argparse:
     parser = argparse.ArgumentParser(
-        description='Convert markdown to HTML using the GitHub API and some additional tweaks with python.',
+        description=('Convert markdown to HTML using the GitHub API and some additional tweaks with python.\n\n'
+                     + 'See https://github.com/phseiff/github-flavored-markdown-to-html#documentation for a more'
+                     + 'detailed help text.'),
     )
 
 
@@ -1362,9 +1378,10 @@ def cmd_to_main():
     "images"-folder within the destination folder.
     Leave this option empty to completely disable image caching/downloading and leave all image links unmodified.""")
 
-    parser.add_argument('-c', '--css-paths', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-c', '--css-paths', nargs="*", action=FuseInputString, help="""
     Where to store the css needed for the html (as a path relative to the website root). Defaults to the
-    "<WEBSITE_ROOT>/github-markdown-css"-folder.""")
+    "<WEBSITE_ROOT>/github-markdown-css"-folder.
+    Leave this option empty to store the CSS inline instead of in an external file.""")
 
     parser.add_argument('-n', '--output-name', nargs="+", action=FuseInputString, default="<name>.html", help="""
     What the generated html file should be called like. Use <name> within the value to refer to the name of the markdown
@@ -1467,7 +1484,9 @@ def cmd_to_main():
     * 2: Enables emoji shortcodes, and additionally allows the use of custom emojis, by adding a link to an image in
       between two colons (e.g. `:image.png:` will add image.png downscaled to emoji size into the text). These custom
       emojis are properly affected by the --compress-images option, scaled to a pixel height of max. 128px, and
-      displayed with the same height as the surrounding text.""")
+      displayed with the same height as the surrounding text.
+    * Note: In cases where an emoji shortcode isn't valid, a warning is risen;
+      in case you want this to raise an error instead, you can catch the warning and do so manually yourself.""")
 
     parser.add_argument('-b', '--box-width', nargs="+", action=FuseInputString, help="""
     The text of the rendered file is always displayed in a box, like GitHub READMEs and issues are.
