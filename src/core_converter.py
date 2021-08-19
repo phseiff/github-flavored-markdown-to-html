@@ -53,8 +53,8 @@ class GitHubFlavoredHighlightRenderer(mistune.HTMLRenderer):
         id_from_title = heading_name_to_id_value(text)
         full_element = (
                 "<" + tag  # + " id=\"user-content-" + id_from_title + "\""
-                + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\"" + "#user-content-" + id_from_title
-                + "\" id=\"user-content-" + id_from_title + "\">"
+                + ">\n<a aria-hidden=\"true\" class=\"anchor\" href=\"" + "#" + id_from_title
+                + "\" id=\"" + id_from_title + "\">"
                 + "<span aria-hidden=\"true\" class=\"octicon octicon-link\"></span></a>" + text + "</" + tag + ">\n"
         )
         return full_element
