@@ -1269,11 +1269,24 @@ https://pypi.org/project/pdfkit/.""")
         # absolute_path_to_file_location/https://foo)
         with open(os.path.join(abs_destination, output_pdf + ".html"), "w+") as f:
             f.write(html_rendered)
-        pdfkit.from_file(
-            os.path.join(abs_destination, output_pdf + ".html"),
-            os.path.join(destination, output_pdf),
-            options=dict() if DEBUG else options,
-        )
+        try:
+            pdfkit.from_file(
+                os.path.join(abs_destination, output_pdf + ".html"),
+                os.path.join(destination, output_pdf),
+                options=dict() if DEBUG else options,
+            )
+        except OSError:
+            raise OSError(
+"""\
+Saving the pdf faile failed because the saving location was unwriteable.
+This can be caused by a read-only file system or many other reasons, but the most probable reason is that you had an
+older version of the pdf opened in a pdf viewer whilst gh-md-to-html was trying to write the new version to its
+location, and that the pdf viewer you used locks pdf files whilst it has them opened. This is standard behavior with
+Adobe Reader, for example.
+For pdf viewers that can handle live-upading the pdf, see here, for example:
+https://superuser.com/questions/599442/pdf-viewer-that-handles-live-updating-of-pdf-doesnt-lock-the-file\
+"""
+            )
         os.remove(os.path.join(abs_destination, output_pdf + ".html"))
 
     # return the result
