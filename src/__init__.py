@@ -739,6 +739,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     style_pdf = str2bool(style_pdf)
     math = str2bool(math)
     compression_information = compress_images_input_to_dict(compress_images)
+    if output_pdf == "":
+        output_pdf = "<name>.pdf"
     if website_root == "":
         website_root = "."
     if website_root is None:
@@ -1391,11 +1393,12 @@ def cmd_to_main():
     the command line interface) or return it (if using the python module), both without saving it. Default is 
     '<name>.html'.""")
 
-    parser.add_argument('-p', '--output-pdf', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-p', '--output-pdf', nargs="*", action=FuseInputString, help="""
     If set, the file will also be saved as a pdf file in the same directory as the html file, using pdfkit, a python
     library which will also need to be installed for this to work. You may use the <name> variable in this value like
-    you did in --output-name.
-    Do not use this with the -c option if the input of the -c option is not trusted; execution of malicious code might
+    you did in --output-name. If you use `-p` without any input to it, it will use `<name>.pdf` as a sensible default
+    for you,
+    Do not use this with the -x option if the input of the -x option is not trusted; execution of malicious code might
     be the consequence otherwise!!""")
 
     parser.add_argument('-m', '--math', default="true", help="""
