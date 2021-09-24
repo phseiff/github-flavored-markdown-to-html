@@ -15,12 +15,16 @@ A user-friendly python-module and command-line frontend to convert markdown to h
 internet connection), but comes with an option for offline conversion (which closely imitates GitHubs behavior), and any other python- or commandline tool can be plugged into it as well.
 Whatever you use it with is automatically extended with a ton of functionality, like more in- and output options,
 [github-flavored CSS](https://github.githubassets.com/assets/gist-embed-52b3348036dbd45f4ab76e44de42ebc4.css), formula
-support, image downloading, host-ready file- and image-placement, pdf-conversion, and more.
+support, advanced image caching and optimization, host-ready file- and image-placement, pdf-conversion, emoji shortcode support, TOC support and more.
 
 Whilst its main purpose is the creation of static pages from markdown files, for example in conjunction with a static
 website builder or github actions if you host on Github, it can be very well-used for any other purpose.
 
-Advantages include<!--<sup>(sorted by importance; skip the rest as soon as you're convinced!</sup>-->:
+Here is a (not necessarily extensive) list of its advantages and features:
+
+<details><summary>Advantages & Features</summary>
+
+<!--Advantages include<sup>(sorted by importance; skip the rest as soon as you're convinced!</sup>-->:
 
 * Lets you specify the markdown to convert as a string, as a repository path, as a local
   file name or as a hyperlink.
@@ -63,6 +67,14 @@ Advantages include<!--<sup>(sorted by importance; skip the rest as soon as you'r
   in the same resolution et cetera, both are pointed to the same copy in the generated html to minimize loading
   overhead.
 * Comes with an option to closely imitate GitHub's markdown-to-html-conversion behavior offline!
+* Emoji shortcode support.
+* Probably even more than that - this list here is no longer maintained, refer to the documentation further down this README for all options.
+
+</details>
+
+In case you are looking for an alternative to Pandoc for converting markdown to PDF, here is a list of reasons why you could want to use gh-md-to-html instead of Pandoc for the job:
+
+<details><summary>Reasons to use this instead of Pandoc</summary>
 
 Whilst using pandoc to convert from markdown to pdf usually yields more beautiful results (pandoc uses LaTeX, after
 all), gh-md-to-html has its own set of advantages when it comes to quickly converting complex files for a homework
@@ -78,7 +90,7 @@ assignment or other purposes where reliability weights more than beauty:
   whenever pandoc fails converting .md to .pdf because of this, it shows the line number of the error based on the
   intermediate .tex-file instead of the input .md-file, which makes it difficult to find the problem's root.
   As you might have guessed, gh-md-to-html couldn't care less about the amount of whitespace you start your formulas
-  with, leaving the decision up to you.
+  with, leaving this decision up to you.
 * pandoc supports multiple markdown flavors. The sole formula-supporting one of these is pandoc-flavored markdown, which
   comes with some quite specific requirements regarding the amount of trailing whitespace before a sub-list in a nested
   list, and other requirements to create multi-line bullet point entries. These requirements are not fulfilled my many
@@ -91,10 +103,12 @@ assignment or other purposes where reliability weights more than beauty:
 To sum it up, pandoc's md-to-pdf-conversion acts quite unusual when it comes to images, nested lists, multiline bullet
 point entries, or formulas, and gh-md-to-html does not.
 
+</details>
+
 ## Installation
 
-Use `pip3 install gh-md-to-html` to install directly from the python package index, or `python3 -m pip install ...` if
-you are on windows.
+Use `pip3 install gh-md-to-html` to install directly from the python package index, or `python3 -m pip install gh-md-to-html` if
+you are on Windows.
 
 Both might require `sudo` on Linux, and you can optionally do
 
@@ -141,8 +155,144 @@ in Python.
 If you call `gh-md-to-html foo.md` without any additional options, you will get a file called `foo.html` in the same directory as `foo.md`, with all the images referenced in `foo.md` in a folder called `images` and the required CSS in a folder called `github-markdown-css` (both linked by `foo.html` using absolute relative links).
 -->
 
-### Documentation
+## Documentation
 
+<details><summary>Documentation (throughout introduction for starters - NOT FINISHED YET)</summary>
+
+<br>
+
+* **Usage**: `gh-md-to-html <input_name> <optional_arguments>`
+
+* **Default behavior**:<br>
+  By default, gh-md-to-html takes a markdown file name as an argument, and saves the generated HTMl in a file of the same name, with `.html` instead of `.md`.<br>
+  Some quirks:
+  * The generated CSS is stored in `github-markdown-css/github-css.css` (add `-c` to make it inline instead).
+  * All referenced images are cached, stored & referenced in `./images` (add `-i` to disable this).
+  * All image & css links assume that you want to host the html file with your current directory as the root directory (add `-w` if you want to directly view it in a browser instead).
+  * All `id`s and file-internal links are prefaced by `user-content-`, so you can embed the generated html in a bigger website without risking ID clashes.
+  
+* **Some common use cases**:<br>
+  Through past issues, I realised that there are some very common use cases that most people seem to have for this module. Here are the most common ones, and which options and arguments to use for them:
+  * **preview a GitHub README**: use `-i -w --math false --box-width 25cm`, though [grip](https://github.com/joeyespo/grip) might be more efficient for this purpose.
+  * **preview a GitLab README**: see above, and add `--toc` to support GitLab's TOC syntax.
+  * **as an alternative to pandoc-flavored markdown**: use `--math true --emoji-support 0 --dont-make-images-links true`.
+  * **having everything in one file**: use `-i -c` to have everything in one file.
+
+* **Converting markdown files from the web** with `--origin-type`:<br>
+  You might want to not only convert a local markdown file, but also a file from a GitHub repository, a web-hosted one, or the contents of a string. Simply downloading these or storing them in a file is often not enough, since their location on the web also influences how the links to images they reference must be resolved. Luckily, gh-md-to-html has got your back!<br>
+  There is a number of different arguments you can use to describe what kind of file the input you gave references:
+  * `--origin-type file`: The default; takes a (relative or absolute) file path
+  * `--origin-type repo`: Takes a pth to a markdown file in a github repository, in the format `<user_name>/<repo_name>/<branch-name>/<path_to_markdown>.md`.
+  * `--origin-type web`: Takes the url of a web-hosted markdown file.
+  * `--origin-type string`: Takes a string containing markdown.
+  Some of these options you use influences how image links within the markdown file are resolved; a later section of this README outlines this in detail.
+
+* **Fine-tuning what goes where**:<br>
+  gh-md-to-html is written with the goal of generating a host-ready static website for you, with your current working directory as its root. Aside from using `-w` to disable this and allow you to view the generated file directly in a browser, there are a number of options that allow you to fine-tune what goes where, and most popularly, change the root of the website.
+  There is no need to do so unless you want to for some reason, so don't bother reading this if you don't need to!
+  * `--website-root`(or `-w`): Leaving this option empty, as discussed above, allows you to preview the generated html file directly in a browser (on most systems by double-clicking it) in case you don't want to host the generated html file, but you can also supply any directory that you want to use as the website's root to this. It defaults to your current working directory.
+  * `--destination` (or `-d`): The path, relative to `--website-root`, in which the generated html file is stored. By default, the website root is used for this.
+  * `--image-paths` (or `-i`): You can leave this empty to disable image caching, as described above (though this won't work in case you modified `--origin-type`), or supply a path relative to website-root to modify where images are stored. It defaults to `images`.<br>
+    Image caching makes sure that two pixel-identical images are stored in the same file location, to minimize loading time for files with multiple identical images.
+    The `image-paths`-directory isn't automatically emptied between multiple runs of gh-md-to-html for this reason, to ensure that this optimization can be used cross-file when converting multiple files in a bulk.
+    <!-- You will have to manually empty it or wrap your own automization around gh-md-to-html to empty it between every run. -->
+  * `--css-paths` (or `-c`): You can leave this empty to disable storing the CSS in an external CSS file (useful e.g. if you want to convert only one file), as described above, or supply a path relative to website-root to modify where the CSS file (called `github-css.css`) will be stored.
+    The default is `github-markdown-css`.
+  * `--output-name` (or `-n`): The file name under which to store the generated html file in the destination-directory.
+    You can use `<name>` anywhere in this string, and it will automatically be replaced with the name of the markdown file, so, for example, `gh-md-to-html inp.md -n "<name>-conv.html"` will store the result in `ino-conv.html` (this doesn't work with `--origin-type string`, of course).<br>
+    You can also use `-n print` in order to simply write the output to STDOUT (print it on the console) instead of saving it anywhere.
+    The default value is `<name>.html`, so it adapts to your input file name.
+  * `--output-pdf` (or `-p`): The file in which to store the generated pdf.
+    You can use the `<name>`-syntax here as well. If the `-p`-option isn't used, no pdf will be generated (and you need to have followed the pdfkit & wkhtmltopdf installation instructions above to have this option work), but you can use `-p` without any arguments to have it use `<name>.pdf` as a sensitive file name default.
+
+* **exporting as pdf**:<br>
+  As mentioned above, you can export the generated HTML file as a pdf using the `--output-pdf`-option.
+  Doing so requires you to have `wkhtmltopdf` installed (the Qt-patched version), to add it to the PATH (if you are on Windows), and to have `pdfkit` installed (e.g. via `pip3 install gh-md-to-html[offline_conversion]`), but all of these requirements are already outlined above in the [installation](#installation) section.<br>
+  There are some things worth noting here, though. First of all, DO NOT use this option if you have valuable information in a file called `{yourpdfexportdestination}.html`, where `{yourpdfexportdestination}` is what you supplied to `-p`, since this file will be temporarily overwritten in the process; furthermore, do not use `-p` at all if you are supplying untrusted input to the `-x`-option.<br>
+  There are also some options specifically tailored for use with `-p`; these are currently:
+  * `--style-pdf` (or `-s`): Set this to `false` to disable styling the generated PDF file with GitHub's CSS. You might want to do this because the border that GitHub's CSS draws around the page can look counterintuitive in PDFs, though doing so can also negatively influence the appearance of other parts, so use this with a grain of salt.
+
+* **changing which core markdown converter to use**:<br>
+  gh-md-to-html doesn't actually do all that much heavy lifting itself when it comes to parsing markdown and converting it to PDF; instead, it wraps around a so-called "core converter" that does the basic conversion according to the markdown spec, and builds its own options, features, customizations and styling on top of that. By default, the GitHub markdown REST API is used for that, since it comes closest to what GitHub does with its READMEs, but you can also give gh-md-to-html any other basic markdown converter to work with.
+
+  gh-md-to-html also comes with two build-in alternative core converters to use, that imitate GitHub's REST API as close as possible whilst adding their own personal touch to it.
+
+  Option to decide the core converter:
+  * `--core-converter` (or `-o`): You can use this option to choose from a number of pre-defined core converters (see below) in case you want to differ from the default one.
+  
+    You can also supply a bash command (on UNIX/Linux systems) to this, or a cmd.exe command on Windows, in which `{md}` stands as a placeholder for where the shell-escaped input markdown will be inserted by gh-md-to-html. For example,<br>
+    `gh-md-to-html inp.md -o "pandoc -f markdown -t html <<< {md}"`<br>
+    will use pandoc as its core converter.<br/>
+    You can also do so using multiple commands, like<br>
+    `gh-md-to-html -o "printf {md} >> temp.md; pandoc -f markdown -t html temp.md; rm temp.md"`,<br>
+    as long as the result is printed to stdout.
+  
+    If you use the Python-interface to gh-md-to-html, you can also supply any function that converts a markdown string into a html string to this argument. 
+  
+  Pre-defined core converters that you can easily supply to `--core-converter` as strings:
+  * `OFFLINE`: Imitates GitHub's markdown REST API, but offline using mistune. This requires the optional dependencies for "offline_conversion" to be satisfied, by using `pip3 install gh-md-to-html[offline_conversion]` or `pip3 install mistune>=2.0.0rc1`.
+  * `OFFLINE+`: Behaves identical to OFFLINE, but it doesn't remove potentially harmful content like javascript and css like the GitHub REST API usually does. DO NOT USE THIS FEATURE unless you need a way to convert secure manually-checked markdown files without having all your inline js/styling stripped away!
+
+* **support for inline-formulas**:<br>
+  `gh-md-to-html` supports, by default, inline formulas (no matter which core converter, see above, you use).
+  This means that you can write a LaTeX formula between two dollar signs on the same line, and it will be replaced with an SVG image displaying said formula. For example, <br>
+  `$e = m \cdot c^2$`<br>
+  will add Einstein's famous formula as a svg image, well-aligned with the rest of the text surrounding it, into your document.
+
+  `gh-md-to-html` always tries to use your local LaTeX installation to do this conversion (advantage: fast and doesn't require internet).
+  However, if [LaTeX](https://www.tug.org/texlive/) or [dvisvgm](https://dvisvgm.de/) are not installed or it can't find them, it uses [an online converter](https://latex.codecogs.com/) (advantage: doesn't require you to install 3 GB of LaTeX libraries) to achieve this.
+
+  You can use the following options to modify this behavior:
+  * `--math` (or `-m`): Set this to `false` to disable formula rendering.
+  * `--suppress-online-fallbacks`: Set this to `true` to disable the online fallback for formula rendering, raising an error if its requirements aren't locally installed or can't be found for some reason.
+
+* **image caching and image compression**:<br>
+  As explained in-depth above, gh-md-to-html saves images so they can all be loaden from the same folder. This comes with the advantages of
+  * potentially reducing tracking (in case the images where hosted on a 3rd-party website)
+  * reducing the number of DNS lookups required to show your generated HTMl file (in case the images where hosted on different 3rd-party websites)
+  * reducing the number of images to load (if one or multiple md files you intend to host or view as html files contain the same or pixel-identical images)
+  
+  In addition to these advantages, gh-md-to-html also allows you to set a level of image compression to use for these images. If you decide to do so, every image will be converted to JPEG (using a background color and quality settings of your liking), and images will be downscaled if the generated html states that they won't be needed at their full size anyways (you can make use of this e.g. by using `<img>`-tags directly in your document and supplying them with an explicit `width` or `height` value).
+
+  gh-md-to-html is also the only markdown converter capable of making use of the html `srcset`-attribute, which allows the generated document to reference several differently scaled versions of the same image, of whom the browser will then load the smallest large-enough one on smaller screen sizes, leading to great load reductions e.g. on mobile.
+  Enabling this feature can lead to further loading time reductions without sacrificing any visible image quality, which makes gh-md-to-html the best choice if you want to generate fast-loading websites from your image-heavy markdown files.
+
+  The option to use for all of this is
+  * `--compress-images`.<br>
+    and it accepts a piece of JSON data with the following attributes:
+    * `bg-color`: the color to use as a background color when converting RGBA-images to jpeg (an RGB-format).
+      Defaults to "`white`" and accepts almost any HTML5 color-value ("`#FFFFFF`", "`#ffffff`", "`white`" and "`rgb(255, 255, 255)`" would've all been valid values).
+    * `progressive`: Save images as progressive jpegs.
+      Default is False.
+    * `srcset`: Save differently scaled versions of the image and provide them to the image in its srcset attribute.
+      Defaults to False.
+      Takes an array of different widths or `True`, which serves as a shortcut for "`[500, 800, 1200, 1500, 1800, 2000]`".
+    * `quality`: a value from 0 to 100 describing at which quality the images should be saved.
+      Defaults to 90.
+      If a specific size is specified for a specific image in the html, the image is always converted to the right size *before* reducing the quality.
+    
+    If this argument is left empty, no compression is used at all.
+    If this argument is set to True, all default values are used.
+    If it is set to json data and some values are omitted, the defaults ones are used for these.
+  
+    You can also pass a dict instead of a string containing JSON data if you are using this option in the Python frontend.
+  
+    Image compression won't work, for obvious reasons, if you use `-i` to disable image caching.
+
+* **my personal choices**:<br>
+  GitHub-flavored markdown and markdown in general makes some unpopular choices, and gh-md-to-html, imitating it, also makes a lot of these. If your goal isn't to be as close as possible to (github-flavored) markdown, and you want to utilize the full power that gh-md-to-html offers to the fullest, I recommend the following (very opinionated) list of settings and options. Note that some of these aren't safe when converting user-generated content, though.
+  * `--math true`: This is already enabled by default, so not really a recommendation, but you'll most likely want to have LaTeX math support in your file.
+  * `--core-converter OFFLINE+`: This converts the markdown files offline instead of using GitHub's REST API, and allows the use of unsafe things like inline code and every html you could wish for in your markdown file.
+  * `--compress-images`: There are many ways to finetune this options, but it allows for some great optimizations on the cached images, including the use of the HTML  `srcset`-attribute, which no other markdown converter currently supports afaik.
+  * `--box-width 25cm`: You'll most likely want to limit the width of the box in which the generated website's content is displayed [for reasons of readability](https://en.wikipedia.org/wiki/Line_length), unless you plan to embed the generated html into a bigger html file.
+  * `--toc true`: This allows you to use `[[_TOC_]]` as a shortcut for a table of contents in the generated file.
+  * `--dont-make-images-links true`: By default, GitHub wraps every image into a link to the image source, unless the image is already wrapped into a different link. This option disables this behavior for more control over your image's links.
+  * `--emoji-support 2`: gh-md-to-html supports using emoji shortcodes, like `:joy:`, which are then replaced with emojis in the generated html file. `--emoji-support 2` takes this one level further this by allowing you to use your own custom emojis, so `:path/to/funny_image.png:` will add `funny_image.png` as an emoji-sized emoji into the text.
+  * `--soft-wrap-in-code-boxes true`: By default, GitHub displays its multiline code boxes with a horizontal scrollbar if they are at a risk of overflowing. Use this option to have (imho more reasonable) soft-wrap in code boxes instead.
+
+</details>
+
+<details><summary>Help text (look up what every option does)</summary>
 All arguments and how they work are documented in the help text of the program, which looks like the following.
 
 Please note that the options are listed ordered by relevance, and all of them have sensible defaults, so don't feel overwhelmed by how many there are;
@@ -339,8 +489,9 @@ optional arguments:
 
 ```
 
-In cases where an emoji shortcode isn't valid, a warning is risen;
-in case you want this to raise an error instead, you can catch the warning and do so manually yourself.
+</details>
+
+#### More detail on image caching paths:
 
 As mentioned above, any image referenced in the markdown file is stored locally and
 referenced using a root-relative hyperlinks in the generated html. How the converter
@@ -352,6 +503,8 @@ guesses the location of the image is shown in the following table, with the type
 | `-t string`                         | from the address        | abs.filepath, but needs confirmation for security reasons | rel. filepath (to where the tool is called from), but needs confirmation for security reasons | -                                              | -                                                 |
 | `username/repo/dir/file.md -t repo` | from the address        | -                                                         | -                                                                                             | `username/repo/imagedir/image.png`             | `username/repo/dir/imagedir/image.png`            |
 | `https://foo.com/bar/baz.md -t web` | from the address        | -                                                         | -                                                                                             | `https://foo.com/image.png`                    | `https://foo.com/bar/image.png`                   |
+
+<!--
 
 ## Demonstration
 
@@ -393,6 +546,8 @@ contain whitespaces. Otherwise, the markdown code to embed the image will be sho
 resulting html/pdf instead of being replaced with an image. I will eventually get to change this; if you want this to
 be done ASAP, feel free to drop a comment under the corresponding issue, and I will get to work on it ASAP.
 
+-->
+
 ## Feedback
 
 As with all of my projects, feedback (even if it is just something small like telling me your use case for my project, or telling me that you didn't like the README's structure, or telling me that you specifically liked one specific feature) is much appreciated, and helps me make this project better, even if it's something very tiny!
@@ -407,6 +562,8 @@ If you run into bugs, weird behaviors, installation errors and the like whilst u
 If you found this tool useful, please consider starring it on GitHub to show me your appreciation!
 I would also appreciate if you told me about issues you encountered even if you managed to fix them in your own copy of the code, so I can fix them in this repo, too.
 
+<!--
+
 ## Known Usages
 
 This tool is already used by
@@ -416,6 +573,8 @@ This tool is already used by
 * [my website](https://phseiff.com) (uses it in its website builder, as detailed in [this blog post of mine](https://phseiff.com/e/why-i-like-my-website/))
 * feel free to tell me via an issue if you want to be included in this list!
 
+-->
+
 ## Further reading
 
 * I wrote a small write-up on Reddit about gh-md-to-html, which doesn't really say anything that isn't somehow said in this README already, but might be an easier read:
@@ -424,6 +583,7 @@ This tool is already used by
   [link](https://gist.github.com/justincbagley/ec0a6334cc86e854715e459349ab1446#gistcomment-3706145)
 * Brief mention of `gh-md-to-html` in another project's documentation:
   [link](https://github.com/bearwalker/GitAtom/blob/42d84449f62f3e0880af49e8b1f3dd8f159062c6/GitAtomDocs.md#markdown-to-html)
+* [A blog post about it](https://dev.to/siddharth2016/how-to-convert-markdown-to-html-using-python-4p1b) (on someone else's blog)
 * If you are aware of any other mentions or discussions regarding gh-md-to-html, feel free to tell me so I can include them!
 
 ## Attribution

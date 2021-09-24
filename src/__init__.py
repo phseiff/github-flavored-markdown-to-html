@@ -28,6 +28,7 @@ import math as math_module
 import shutil
 import typing
 import html
+from . import windows_shellescape
 import uuid
 import warnings
 from .latex2svg import latex2svg
@@ -473,7 +474,7 @@ def markdown_to_html_via_github_api(markdown):
     """Converts markdown to html, using the github api and nothing else."""
     headers = {"Content-Type": "text/plain", "charset": "utf-8"}
     return str(
-        requests.post("https://api.github.com/markdown/raw", headers=headers, data=markdown).content,
+        requests.post("https://api.github.com/markdown/raw", headers=headers, data=markdown.encode("utf-8")).content,
         encoding="utf-8"
     )
 
@@ -819,19 +820,72 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
             cc.INTERNAL_USE = True
         html_content = cc.markdown(md_content)
     elif type(core_converter) is str:  # execute the command:
+        # find out how to run the command:
+        if sys.platform.startswith('win'):
+            how_to_run_this = "cmd.exe"
+        elif shutil.which("bash") is not None:
+            how_to_run_this = "bash"
+        else:
+            raise Exception("You tried to use --core-converter (-o) with a custom command, but you are neither on"
+                            "Windows (cmd.exe), nor does your platform support bash.")
+
+        # escape the ms content in the right way:
+        if how_to_run_this == "cmd.exe":
+            md_content_shellescaped = windows_shellescape.escape_argument(md_content)
+        elif how_to_run_this == "bash":
+            md_content_shellescaped = shellescape.quote(md_content)
+        else:
+            raise
+
+        # finally convert:
         out = subprocess.Popen(
-            core_converter.format(md=shellescape.quote(md_content)),
+            (
+                core_converter.replace("{md}", md_content_shellescaped)
+                if how_to_run_this == "cmd.exe"
+                else [shutil.which("bash"), "-c", core_converter.replace("{md}", md_content_shellescaped)]
+            ),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            shell=True,
+            shell=(how_to_run_this == "cmd.exe"),
         )
         stdout, stderr = out.communicate()
-        if stderr:
-            raise Exception("An exception with the used command occurred\n" + traceback.print_exc())
+        if out.returncode != 0:
+            # Create a simplified version of the md content to put into the error message:
+            md_content_split_into_lines = md_content.split("\n")
+            if len(md_content_split_into_lines) == 1 and len(md_content_split_into_lines[0]) <= 40:
+                md_content_simplified = md_content_split_into_lines[0]
+            elif len(md_content_split_into_lines) > 1 and len(md_content_split_into_lines[0]) <= 37:
+                md_content_simplified = md_content_split_into_lines[0] + "..."
+            elif len(md_content_split_into_lines) > 1 and len(md_content_split_into_lines[0]) > 37:
+                md_content_simplified = md_content_split_into_lines[0][:36] + "..."
+            else:
+                raise
+            # escape the simplified ms content in the right way:
+            if how_to_run_this == "cmd.exe":
+                md_content_simplified_shellescaped = windows_shellescape.escape_argument(md_content_simplified)
+            elif how_to_run_this == "bash":
+                md_content_simplified_shellescaped = shellescape.quote(md_content_simplified)
+            else:
+                raise
+            print("md_content_simplified_shellescaped:", md_content_simplified_shellescaped)
+            print("end")
+            # raise exception:
+            raise Exception("An exception with the core converter occurred:\n\n"
+                            + (("STDERR:\n" + stderr.decode(encoding=sys.stdout.encoding) + "\n\n") if stderr else "")
+                            + (("STDOUT:\n" + stdout.decode(encoding=sys.stdout.encoding) + "\n\n") if stdout else "")
+                            + "with your command (displayed slightly shortened here):\n\n"
+                            + core_converter.replace("{md}", md_content_simplified_shellescaped))
         else:
-            html_content = stdout
-    else:  # call the function:
-        html_content = core_converter(md_content)
+            html_content = stdout.decode(encoding=sys.stdout.encoding)
+    else:
+        # call the core converter as a function in case it is one:
+        try:
+            html_content = core_converter(md_content)
+        except Exception as e:
+            # raise exception:
+            e.args = ("An exception with the core converter occurred:\n\n" + e.args[0],) + e.args[1:]
+            raise e
+            # raise type(e)("An exception with the core converter occurred:\n\n" + str(e))
 
     if DEBUG:
         print("\n------------\nHtml content:\n------------\n\n", html_content)
@@ -878,11 +932,13 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
     # fill everything into our template, to link the html to the .css-file etc.:
     with open_local("prototype.html", "r") as f:
+        # get an id for the page we create:
         possible_id_for_essay = (
             (output_name.split("/")[-1].split(os.sep)[-1].split(".")[0] if output_name not in ("print", "<name>.html")
              else (md_origin.split("/")[-1].split(os.sep)[-1].rsplit(".")[0] if origin_type != "string"
                    else (extra_css.split("/")[-1].split(os.sep)[-1].split(".")[0] if extra_css else "")))
         )
+        # convert markdown to html:
         html_rendered = f.read().format(
             article=html_content,
             css_paths=("/" if website_root != "." else "") + css_paths.replace(os.sep, "/"),
@@ -1176,7 +1232,8 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
     html_soup = BeautifulSoup(html_rendered, 'html.parser')
     for h in ("h1", "h2", "h3", "h4", "h5"):
         for header_soup_representation in html_soup.find_all(h):
-            header_soup_representation['id'] = header_soup_representation.a['id']
+            if header_soup_representation.find('a'):
+                header_soup_representation['id'] = header_soup_representation.a['id']
             # ToDo: Implement these nice anchor svg icons GitHub displays next to every heading
     #       link_within_header = header_soup_representation.a
     #       link_within_header.append(BeautifulSoup(GITHUB_LINK_ANCHOR, 'html.parser').find("svg"))
@@ -1347,7 +1404,7 @@ def cmd_to_main():
             setattr(namespace, self.dest, " ".join(values))
 
 
-    parser.add_argument('md_origin', nargs="+", metavar='MD-origin', action=FuseInputString,
+    parser.add_argument('md_origin', metavar='MD-origin',
                         help='Where to find the markdown file that should be converted to html')
 
     parser.add_argument('-t', '--origin-type', choices=["file", "repo", "web", "string"], default="file",
@@ -1360,7 +1417,7 @@ def cmd_to_main():
     * web: takes an url to a markdown file
     * string: takes a string containing the files content"""))
 
-    parser.add_argument('-w', '--website-root', nargs="*", action=FuseInputString, help="""
+    parser.add_argument('-w', '--website-root', nargs="?", help="""
     Only relevant if you are creating the html for a static website which you manage using git or something similar.
     --website-root is the directory from which you serve your website (which is needed to correctly generate the links
     within the generated html, such as the link pointing to the css, since they are all root-relative),
@@ -1374,26 +1431,26 @@ def cmd_to_main():
     # ToDo: Allow the use of any --website-root even if one wants to view the files locally, as long as destination is
     #  a dot.
 
-    parser.add_argument('-d', '--destination', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-d', '--destination', help="""
     Where to store the generated html. This path is relative to --website-root. Defaults to "".""")
 
-    parser.add_argument('-i', '--image-paths', nargs="*", const="", action=FuseInputString, help="""
+    parser.add_argument('-i', '--image-paths', nargs="?", const="", help="""
     Where to store the images needed or generated for the html. This path is relative to website-root. Defaults to the
     "images"-folder within the destination folder.
     Leave this option empty to completely disable image caching/downloading and leave all image links unmodified.""")
 
-    parser.add_argument('-c', '--css-paths', nargs="*", action=FuseInputString, help="""
+    parser.add_argument('-c', '--css-paths', nargs="?", help="""
     Where to store the css needed for the html (as a path relative to the website root). Defaults to the
     "<WEBSITE_ROOT>/github-markdown-css"-folder.
     Leave this option empty to store the CSS inline instead of in an external file.""")
 
-    parser.add_argument('-n', '--output-name', nargs="+", action=FuseInputString, default="<name>.html", help="""
+    parser.add_argument('-n', '--output-name', default="<name>.html", help="""
     What the generated html file should be called like. Use <name> within the value to refer to the name of the markdown
     file that is being converted (if you don't use "-t string"). You can use '-n print' to print the file (if using
     the command line interface) or return it (if using the python module), both without saving it. Default is 
     '<name>.html'.""")
 
-    parser.add_argument('-p', '--output-pdf', nargs="*", action=FuseInputString, help="""
+    parser.add_argument('-p', '--output-pdf', nargs="?", help="""
     If set, the file will also be saved as a pdf file in the same directory as the html file, using pdfkit, a python
     library which will also need to be installed for this to work. You may use the <name> variable in this value like
     you did in --output-name. If you use `-p` without any input to it, it will use `<name>.pdf` as a sensible default
@@ -1404,7 +1461,7 @@ def cmd_to_main():
     parser.add_argument('-m', '--math', default="true", help="""
     If set to True, which is the default, LaTeX-formulas using $formula$-notation will be rendered.""")
 
-    parser.add_argument('-f', '--footer', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-f', '--footer', help="""
     An optional piece of html which will be included as a footer where the 'hosted with <3 by github'-footer in a gist
     usually is.
     Defaults to None, meaning that the section usually containing said footer will be omitted altogether.
@@ -1418,7 +1475,7 @@ def cmd_to_main():
         hack. The help text is disabled, but remains in the source code for future reference. Supplying the parameter
         is still supported for reasons of backwards compatibility, but it does not do anything anymore.""")
 
-    parser.add_argument('-x', '--extra-css', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-x', '--extra-css', help="""
     A path to a file containing additional css to embed into the final html, as an absolute path or relative to the
     working directory. This file should contain css between two <style>-tags, so it is actually a html file, and can
     contain javascript as well. It's worth mentioning and might be useful for your css/js that every element of the
@@ -1433,7 +1490,7 @@ def cmd_to_main():
     If set to false, the generated pdf (only relevant if you use --output-pdf) will not be styled using github's css.
     """)
 
-    parser.add_argument('-o', '--core-converter', nargs="+", action=FuseInputString,
+    parser.add_argument('-o', '--core-converter',
                         default=markdown_to_html_via_github_api, help="""
     The converter to use to convert the given markdown to html, before additional modifications such as formula support
     and image downloading are applied; this defaults to using GitHub's REST API and can be
@@ -1449,7 +1506,7 @@ def cmd_to_main():
       manually-checked markdown files without having all your inline js stripped away!
     """)
 
-    parser.add_argument('-e', '--compress-images', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-e', '--compress-images', help="""
     Reduces load time of the generated html by saving all images referenced by the given markdown file as jpeg. This
     argument takes a piece of json data containing the following information; if it is not used, no compression is done:
     * bg-color: the color to use as a background color when converting RGBA-images to jpeg (an RGB-format). Defaults to
@@ -1462,7 +1519,7 @@ def cmd_to_main():
     * quality: a value from 0 to 100 describing at which quality the images should be saved (this is done after they are
       scaled down, if they are scaled down at all). Defaults to 90.
     If a specific size is specified for a specific image in the html, the image is always converted to the right size.
-    If this argument is left empty, no compression is down at all. If this argument is set to True, all default values
+    If this argument is left empty, no compression is done at all. If this argument is set to True, all default values
     are used. If it is set to json data and values are omitted, the defaults are also used. If a dict is passed instead
     of json data (when using the tool as a python module), the dict is used as the result of the json data.
     """)
@@ -1493,7 +1550,7 @@ def cmd_to_main():
     * Note: In cases where an emoji shortcode isn't valid, a warning is risen;
       in case you want this to raise an error instead, you can catch the warning and do so manually yourself.""")
 
-    parser.add_argument('-b', '--box-width', nargs="+", action=FuseInputString, help="""
+    parser.add_argument('-b', '--box-width', help="""
     The text of the rendered file is always displayed in a box, like GitHub READMEs and issues are.
     By default, this box fills the entire screen (max-width: 100%%),
     but you can use this option to reduce its max width to be more readable when hosted stand-alone; the resulting box
