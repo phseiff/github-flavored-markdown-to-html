@@ -24,7 +24,7 @@ setup(
     license="LICENSE.txt",
     extras_require={
         'pdf_export': ["pdfkit"],
-        'offline_conversion': ["mistune>=2.0.0rc1", "pygments"]
+        'offline_conversion': ["mistune==2.0.0rc1", "pygments"]
     },
     classifiers=[
         "Programming Language :: Python :: 3",
