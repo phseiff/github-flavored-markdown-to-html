@@ -684,7 +684,7 @@ def compress_image(full_image, width, bg_color, quality, progressive,
                    hashes_to_images) -> str:
     thumbnail = full_image.copy()
     size = (width, int(thumbnail.size[1] * width/thumbnail.size[0]))
-    thumbnail.thumbnail(size, Image.ANTIALIAS)
+    thumbnail.thumbnail(size, Image.LANCZOS)
 
     offset_x = max((size[0] - thumbnail.size[0]) / 2, 0)
     offset_y = max((size[1] - thumbnail.size[1]) / 2, 0)
