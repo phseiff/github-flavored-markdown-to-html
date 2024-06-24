@@ -1230,10 +1230,10 @@ def main(md_origin, origin_type="file", website_root=None, destination=None, ima
 
     # add correct id to all headings:
     html_soup = BeautifulSoup(html_rendered, 'html.parser')
-    for h in ("h1", "h2", "h3", "h4", "h5"):
-        for header_soup_representation in html_soup.find_all(h):
-            if header_soup_representation.find('a'):
-                header_soup_representation['id'] = header_soup_representation.a['id']
+    #for h in ("h1", "h2", "h3", "h4", "h5"):
+    #    for header_soup_representation in html_soup.find_all(h):
+    #        if header_soup_representation.find('a'):
+    #            header_soup_representation['id'] = header_soup_representation.a['id']
             # ToDo: Implement these nice anchor svg icons GitHub displays next to every heading
     #       link_within_header = header_soup_representation.a
     #       link_within_header.append(BeautifulSoup(GITHUB_LINK_ANCHOR, 'html.parser').find("svg"))
